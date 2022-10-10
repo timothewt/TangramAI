@@ -16,6 +16,7 @@ class Shape:
             qy = oy + np.sin(angle) * (px - ox) + np.cos(angle) * (py - oy)
             self.points[i] = Point(int(qx), int(qy))
 
+
 class Point:
     def __init__(self, x=0, y=0):
         self.x = int(x)
@@ -25,36 +26,39 @@ class Point:
         return f"x:{self.x}, y:{self.y}"
 
     def __add__(self, other):
-        new_pt = Point(0,0)
+        new_pt = Point(0, 0)
         new_pt.x = self.x + other.x
         new_pt.y = self.y + other.y
         return new_pt
 
+
 class Square(Shape):
     def __init__(self):
         super().__init__()
-        self.width = (np.sqrt(2) * self.total_size) / 4
+        self.side_length = (np.sqrt(2) * self.total_size) / 4
         self.points = [
             Point(0, 0),
-            Point(self.width, 0),
-            Point(0, self.width),
-            Point(self.width, self.width)
+            Point(self.side_length, 0),
+            Point(0, self.side_length),
+            Point(self.side_length, self.side_length)
         ]
         self.reference_point = Point(0, 0)
+
 
 class Triangle(Shape):
     def __init__(self):
         super().__init__()
         self.side_length = 0
-        self.reference_points = Point(0,0)
+        self.reference_points = Point(0, 0)
         self.setup_triangle()
 
     def setup_triangle(self):
         self.points = [
-            Point(0,0),
-            Point(0,self.side_length),
-            Point(self.side_length,0)
+            Point(0, 0),
+            Point(0, self.side_length),
+            Point(self.side_length, 0)
         ]
+
 
 class SmallTriangle(Triangle):
     def __init__(self):
@@ -62,29 +66,43 @@ class SmallTriangle(Triangle):
         self.side_length = (self.total_size * np.sqrt(2)) / 4
         self.setup_triangle()
 
+
 class MediumTriangle(Triangle):
     def __init__(self):
         super(MediumTriangle, self).__init__()
         self.side_length = self.total_size / 2
         self.setup_triangle()
 
+
 class LargeTriangle(Triangle):
     def __init__(self):
         super(LargeTriangle, self).__init__()
-        self.side_length = self.total_size
+        self.side_length = (self.total_size * np.sqrt(2)) / 2
         self.setup_triangle()
 
 
 class Parallelogram(Shape):
     def __init__(self):
         super().__init__()
+        self.long_side_length = self.total_size / 2
+        self.height = self.total_size / 4
+        """ height = |
+           ________
+          /   |   /
+         /    |  /
+        /_____|_/
+        """
         self.points = [
-
+            Point(self.long_side_length / 2, 0),
+            Point(3 * self.long_side_length / 2, 0),
+            Point(self.long_side_length, self.height),
+            Point(0, self.height)
         ]
-        self.reference_point = Point(0,0)
+        self.reference_point = Point(0, 0)
+
 
 if __name__ == '__main__':
-    #J'ai pas mis le parallelogramme pour l'instant pour vérifier que les autres pièces marchentg
+    # J'ai pas mis le parallelogramme pour l'instant pour vérifier que les autres pièces marchent
     pieces_tangram = [
         Square(),
         SmallTriangle(),
@@ -93,13 +111,13 @@ if __name__ == '__main__':
         LargeTriangle(),
         LargeTriangle()
     ]
-    #Montre les positions des points avant
+    # Montre les positions des points avant
     triangle_1 = pieces_tangram[1]
     for point in triangle_1.points:
         print(point)
 
-    triangle_1.rotate_shape_around_pivot(180)
-    #Montre les positions après rotation de 90deg
+    triangle_1.rotate_shape_around_pivot(90)
+    # Montre les positions après rotation de 90deg
     # J'ai arrondi les valeurs parce que sinon on avait des décalages au bout de n rotations
     for point in triangle_1.points:
         print(point)
