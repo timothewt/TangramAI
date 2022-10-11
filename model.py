@@ -2,6 +2,7 @@ import cv2 as cv
 from elements import *
 import time
 
+
 class TangramSolver:
     def __init__(self, image_path):
         self.image = self.load_image(image_path)  # image of the shape we want to reproduce with the tangram pieces
@@ -42,34 +43,25 @@ class TangramSolver:
         b_w_image = cv.threshold(image, 230, 255, cv.THRESH_BINARY)[1]
         return b_w_image
 
-    def draw_shape_on_img(self, img, shape_to_draw):
-        time_start = time.time()
-        height, width = img.shape
-        for x in range(0,width):
-            for y in range(0,height):
-                if shape_to_draw.contains_point(Point(x, y)):
-                    img[y][x] = 0
-        time_exec = time.time()-time_start
-        print(time_exec)
-        return img
+    def draw_shape_on_image(self, img, shape):
+        """
+        draws a shape on the image from its vertexes coordinates
+        :param img: image we want to draw in
+        :param shape: Shape object we want to draw
+        :return the new matrix of the image with the shape in it
+        """
+        points = []
+        for point in shape.get_points_in_image():
+            points.append([point.x, point.y])
 
-    def draw_shape_on_img_fast(self,img,shape_to_draw):
-        time_start = time.time()
-
-        liste_points = []
-        for point in shape_to_draw.get_points_in_image():
-            liste_points.append([point.x,point.y])
-
-        pts = np.array(liste_points,np.int32)
+        pts = np.array(points, np.int32)
         pts = pts.reshape((-1, 1, 2))
-        cv.fillPoly(img, [pts],(0,0,0))
-        time_exec = time.time() - time_start
-        print(time_exec)
+        cv.fillPoly(img, [pts], shape.color)
+        return img
 
 
 if __name__ == "__main__":
     ai_tangram = TangramSolver('tangram_unsolved.png')
-
 
     '''
     #Create a new shape
@@ -90,11 +82,10 @@ if __name__ == "__main__":
 
 '''
     para = Parallelogram()
-    para.position_in_image += Point(300,50)
-    para.rotate_shape_around_pivot(170)
-    ai_tangram.draw_shape_on_img_fast(ai_tangram.image,para)
+    para.position_in_image += Point(-100, 0)
+    para.rotate_shape_around_pivot(0)
+    ai_tangram.draw_shape_on_image(ai_tangram.image, para)
 
-
-    #Shows the image
-    cv.imshow("dqsf",ai_tangram.image)
+    # Shows the image
+    cv.imshow("dqsf", ai_tangram.image)
     cv.waitKey(0)

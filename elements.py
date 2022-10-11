@@ -2,14 +2,35 @@ import numpy as np
 
 
 class Shape:
+    """
+    Used to represent the tangram pieces
+        ---
+    total_size: int
+        side length of the square containing all the tangram pieces, determines the size of all the pieces
+    side_length: int
+        length of a side of the shape
+    points: Point[]
+        coordinates of the vertexes of the shape
+    position_in_image: Point
+        coordinates of the shape in the image submitted by the user
+    pivot_point: Point
+        coordinates of the pivot point the shapes refer to in order to rotate
+    color: int
+        color of the piece, just a level of gray for the moment
+    """
     def __init__(self):
         self.total_size = 280  # width of the main square in pixels
+        self.side_length = 280
         self.points = []
         self.position_in_image = Point()
         self.pivot_point = Point()
-        self.color = (0,0,0)
+        self.color = 0
 
     def rotate_shape_around_pivot(self, angle):
+        """
+        changes the coordinates of the shape to the new coordinates after a rotation of (angle)°
+        :param angle: angle of rotation in degrees (clockwise)
+        """
         angle = np.deg2rad(angle)
         for i in range(0, len(self.points)):
             ox, oy = self.pivot_point.x, self.pivot_point.y
@@ -19,6 +40,10 @@ class Shape:
             self.points[i] = Point(qx, qy)
 
     def get_points_in_image(self):
+        """
+        gives the coordinates of the shape in the image reference frame
+        :return: the coordinates in a list of points
+        """
         coordinates_points = []
         for point in self.points:
             coordinates_points.append(point + self.position_in_image)
@@ -26,14 +51,30 @@ class Shape:
 
 
 class Point:
+    """
+    Used to represent a Point of a tangram piece, note that the (0, 0) is at the top left and x goes positive downwards
+    x: int
+        coordinate in the horizontal axis
+    y: int
+        coordinate in the vertical axis
+    """
     def __init__(self, x=0.0, y=0.0):
         self.x = round(x)
         self.y = round(y)
 
     def __str__(self):
+        """
+        displays the coordinates in a string
+        :return: the string "x:(x coordinate), y:(y coordinate)"
+        """
         return f"x:{self.x}, y:{self.y}"
 
     def __add__(self, other):
+        """
+        Adds a point to the current one, i.e. adds its coordinate to it
+        :param other: other point to add
+        :return: the new point with the coordinates added
+        """
         new_pt = Point(0, 0)
         new_pt.x = self.x + other.x
         new_pt.y = self.y + other.y
@@ -41,6 +82,9 @@ class Point:
 
 
 class Square(Shape):
+    """
+    Square tangram piece
+    """
     def __init__(self):
         super().__init__()
         self.side_length = (np.sqrt(2) * self.total_size) / 4
@@ -51,19 +95,12 @@ class Square(Shape):
             Point(0, self.side_length),
             Point(self.side_length, self.side_length)
         ]
-    def _calculate_area(self, A, B, C):
-        area = abs((B.x * A.y - A.x * B.y) + (C.x * B.y - B.x * C.y) + (A.x * C.y - C.x * A.y)) / 2
-        return area
 
-    def contains_point(self, M):
-        A,B,C,D = self.get_points_in_image()
-        sum_area = self._calculate_area(A,M,D) + self._calculate_area(D,M,C)
-        sum_area += self._calculate_area(C,M,B) + self._calculate_area(M,B,A)
-
-        area_square = self.side_length*self.side_length
-        return sum_area < area_square
 
 class Triangle(Shape):
+    """
+    Triangle tangram piece
+    """
     def __init__(self):
         super().__init__()
         self.side_length = 0
@@ -77,16 +114,11 @@ class Triangle(Shape):
             Point(self.side_length, 0)
         ]
 
-    def contains_point(self, M):  # M being the point we want to know if it's in the triangle
-        A, B, C = self.get_points_in_image()
-        s = ((M.x - A.x) * (B.y - A.y) - (M.y - A.y) * (B.x - A.x)) / (
-                    (C.x - A.x) * (B.y - A.y) - (C.y - A.y) * (B.x - A.x))
-        t = ((M.y - A.y) * (C.x - A.x) - (M.x - A.x) * (C.y - A.y)) / (
-                    (B.y - A.y) * (C.x - A.x) - (B.x - A.x) * (C.y - A.y))
-        return 0 <= s <= 1 and 0 <= t <= 1 and s + t <= 1
-
 
 class SmallTriangle(Triangle):
+    """
+    Small triangle tangram piece
+    """
     def __init__(self):
         super(SmallTriangle, self).__init__()
         self.side_length = (self.total_size * np.sqrt(2)) / 4
@@ -94,6 +126,9 @@ class SmallTriangle(Triangle):
 
 
 class MediumTriangle(Triangle):
+    """
+    Medium triangle tangram piece
+    """
     def __init__(self):
         super(MediumTriangle, self).__init__()
         self.side_length = self.total_size / 2
@@ -101,6 +136,9 @@ class MediumTriangle(Triangle):
 
 
 class LargeTriangle(Triangle):
+    """
+    Large triangle tangram piece
+    """
     def __init__(self):
         super(LargeTriangle, self).__init__()
         self.side_length = (self.total_size * np.sqrt(2)) / 2
@@ -108,6 +146,9 @@ class LargeTriangle(Triangle):
 
 
 class Parallelogram(Shape):
+    """
+    Parallelogram tangram piece
+    """
     def __init__(self):
         super().__init__()
         self.long_side_length = self.total_size / 2
@@ -125,17 +166,6 @@ class Parallelogram(Shape):
             Point(self.long_side_length, self.height),
             Point(0, self.height)
         ]
-
-    def _triangle_contains_point(self, M, A, B, C):  # M being the point we want to know if it's in the triangle
-        s = ((M.x - A.x) * (B.y - A.y) - (M.y - A.y) * (B.x - A.x)) / (
-        (C.x - A.x) * (B.y - A.y) - (C.y - A.y) * (B.x - A.x))
-        t = ((M.y - A.y) * (C.x - A.x) - (M.x - A.x) * (C.y - A.y)) / (
-        (B.y - A.y) * (C.x - A.x) - (B.x - A.x) * (C.y - A.y))
-        return 0 <= s <= 1 and 0 <= t <= 1 and s + t <= 1
-
-    def contains_point(self, M):
-        A,B,C,D = self.get_points_in_image()
-        return self._triangle_contains_point(M, A, B,D) or self._triangle_contains_point(M,B,C,D)
 
 
 if __name__ == '__main__':
