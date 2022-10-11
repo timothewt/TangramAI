@@ -53,14 +53,16 @@ class TangramSolver:
         print(time_exec)
         return img
 
-    def draw_shape_on_img2(self,img,shape_to_draw):
+    def draw_shape_on_img_fast(self,img,shape_to_draw):
         time_start = time.time()
+
         liste_points = []
         for point in shape_to_draw.get_points_in_image():
             liste_points.append([point.x,point.y])
+
         pts = np.array(liste_points,np.int32)
         pts = pts.reshape((-1, 1, 2))
-        image = cv.fillPoly(img, [pts],(0,0,0))
+        cv.fillPoly(img, [pts],(0,0,0))
         time_exec = time.time() - time_start
         print(time_exec)
 
@@ -69,7 +71,7 @@ if __name__ == "__main__":
     ai_tangram = TangramSolver('tangram_unsolved.png')
 
 
-
+    '''
     #Create a new shape
     medium_triangle1 = MediumTriangle()
     #Moves it
@@ -77,21 +79,21 @@ if __name__ == "__main__":
     #Rotates the shape
     medium_triangle1.rotate_shape_around_pivot(90)
     #Draw the shape on the img
-    ai_tangram.draw_shape_on_img2(ai_tangram.image,medium_triangle1)
-
+    ai_tangram.draw_shape_on_img_fast(ai_tangram.image,medium_triangle1)
+    '''
     '''
     #Exemple de dessin d'une piece sur l'img
     square = Square()
     square.position_in_image += Point(300,50)
     square.rotate_shape_around_pivot(30)
-    ai_tangram.draw_shape_on_img(ai_tangram.image,square)
+    ai_tangram.draw_shape_on_img_fast(ai_tangram.image,square)
 
-
+'''
     para = Parallelogram()
     para.position_in_image += Point(300,50)
     para.rotate_shape_around_pivot(170)
-    ai_tangram.draw_shape_on_img(ai_tangram.image,para)
-    '''
+    ai_tangram.draw_shape_on_img_fast(ai_tangram.image,para)
+
 
     #Shows the image
     cv.imshow("dqsf",ai_tangram.image)
