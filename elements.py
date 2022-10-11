@@ -126,6 +126,17 @@ class Parallelogram(Shape):
             Point(0, self.height)
         ]
 
+    def _triangle_contains_point(self, M, A, B, C):  # M being the point we want to know if it's in the triangle
+        s = ((M.x - A.x) * (B.y - A.y) - (M.y - A.y) * (B.x - A.x)) / (
+        (C.x - A.x) * (B.y - A.y) - (C.y - A.y) * (B.x - A.x))
+        t = ((M.y - A.y) * (C.x - A.x) - (M.x - A.x) * (C.y - A.y)) / (
+        (B.y - A.y) * (C.x - A.x) - (B.x - A.x) * (C.y - A.y))
+        return 0 <= s <= 1 and 0 <= t <= 1 and s + t <= 1
+
+    def contains_point(self, M):
+        A,B,C,D = self.get_points_in_image()
+        return self._triangle_contains_point(M, A, B,D) or self._triangle_contains_point(M,B,C,D)
+
 
 if __name__ == '__main__':
     # J'ai pas mis le parallelogramme pour l'instant pour vérifier que les autres pièces marchent

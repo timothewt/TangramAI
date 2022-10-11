@@ -65,11 +65,16 @@ if __name__ == "__main__":
     ai_tangram.draw_shape_on_img(ai_tangram.image,medium_triangle1)
     '''
     #Exemple de dessin d'une piece sur l'img
+    '''
     square = Square()
     square.position_in_image += Point(300,50)
     square.rotate_shape_around_pivot(30)
     ai_tangram.draw_shape_on_img(ai_tangram.image,square)
-
+    '''
+    para = Parallelogram()
+    para.position_in_image += Point(300,50)
+    para.rotate_shape_around_pivot(170)
+    ai_tangram.draw_shape_on_img(ai_tangram.image,para)
     #Shows the image
     cv.imshow("dqsf",ai_tangram.image)
     cv.waitKey(0)
