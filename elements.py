@@ -20,7 +20,7 @@ class Shape:
     def get_points_in_image(self):
         coordinates_points = []
         for point in self.points:
-            coordinates_points = point + self.position_in_image
+            coordinates_points.append(point + self.position_in_image)
         return coordinates_points
 
 
