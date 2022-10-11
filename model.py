@@ -26,7 +26,7 @@ class TangramSolver:
         :return: the np array of the black and white resized image
         """
         (h, w) = img.shape[:2]
-        resize_ratio = (360 * 360) / (img < 10).sum()  # 360 being the side of the tangram pieces square, divided by the
+        resize_ratio = pow(280, 2) / (img < 10).sum()  # 280 being the side of the tangram pieces square, divided by the
         # number of black pixel on the image which represent the area of the goal shape
         (new_h, new_w) = (int(resize_ratio * h), int(resize_ratio * w))
         resized_image = cv.resize(img, (new_w, new_h), interpolation=cv.INTER_AREA)
@@ -44,3 +44,5 @@ class TangramSolver:
 
 if __name__ == "__main__":
     ai_tangram = TangramSolver('tangram_unsolved.png')
+    cv.imshow("dqsf",ai_tangram.image)
+    cv.waitKey(0)
