@@ -7,6 +7,7 @@ class Shape:
         self.points = []
         self.position_in_image = Point()
         self.pivot_point = Point()
+        self.color = (0,0,0)
 
     def rotate_shape_around_pivot(self, angle):
         angle = np.deg2rad(angle)
@@ -50,7 +51,17 @@ class Square(Shape):
             Point(0, self.side_length),
             Point(self.side_length, self.side_length)
         ]
+    def _calculate_area(self, A, B, C):
+        area = abs((B.x * A.y - A.x * B.y) + (C.x * B.y - B.x * C.y) + (A.x * C.y - C.x * A.y)) / 2
+        return area
 
+    def contains_point(self, M):
+        A,B,C,D = self.get_points_in_image()
+        sum_area = self._calculate_area(A,M,D) + self._calculate_area(D,M,C)
+        sum_area += self._calculate_area(C,M,B) + self._calculate_area(M,B,A)
+
+        area_square = self.side_length*self.side_length
+        return sum_area < area_square
 
 class Triangle(Shape):
     def __init__(self):
@@ -67,7 +78,7 @@ class Triangle(Shape):
         ]
 
     def contains_point(self, M):  # M being the point we want to know if it's in the triangle
-        A, B, C = self.points
+        A, B, C = self.get_points_in_image()
         s = ((M.x - A.x) * (B.y - A.y) - (M.y - A.y) * (B.x - A.x)) / (
                     (C.x - A.x) * (B.y - A.y) - (C.y - A.y) * (B.x - A.x))
         t = ((M.y - A.y) * (C.x - A.x) - (M.x - A.x) * (C.y - A.y)) / (

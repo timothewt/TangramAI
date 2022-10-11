@@ -1,5 +1,5 @@
 import cv2 as cv
-
+from elements import *
 
 class TangramSolver:
     def __init__(self, image_path):
@@ -41,8 +41,35 @@ class TangramSolver:
         b_w_image = cv.threshold(image, 230, 255, cv.THRESH_BINARY)[1]
         return b_w_image
 
+    def draw_shape_on_img(self, img, shape_to_draw):
+        height, width = img.shape
+        for x in range(0,width):
+            for y in range(0,height):
+                if shape_to_draw.contains_point(Point(x, y)):
+                    img[y][x] = 0
+        return img
+
 
 if __name__ == "__main__":
     ai_tangram = TangramSolver('tangram_unsolved.png')
+
+
+    '''
+    #Create a new shape
+    medium_triangle1 = MediumTriangle()
+    #Moves it
+    medium_triangle1.position_in_image += Point(300,50)
+    #Rotates the shape
+    medium_triangle1.rotate_shape_around_pivot(90)
+    #Draw the shape on the img
+    ai_tangram.draw_shape_on_img(ai_tangram.image,medium_triangle1)
+    '''
+    #Exemple de dessin d'une piece sur l'img
+    square = Square()
+    square.position_in_image += Point(300,50)
+    square.rotate_shape_around_pivot(30)
+    ai_tangram.draw_shape_on_img(ai_tangram.image,square)
+
+    #Shows the image
     cv.imshow("dqsf",ai_tangram.image)
     cv.waitKey(0)
