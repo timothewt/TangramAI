@@ -25,7 +25,7 @@ class TangramSolver:
         resized_img_b_w = self.to_b_w(resized_img)  # to b&w to eliminate gray pixels
         return resized_img_b_w
 
-    def get_corners_coordinates(self, img: np.ndarray([], dtype=int)) -> list[list[int]]:
+    def get_corners_coordinates(self, img: np.ndarray([], dtype=int)) :
         """
         Gives the coordinates of all the corners of the shape to draw using the Harris corner detection algorithm
         :param img: image from which we want the corners
@@ -171,7 +171,7 @@ class TangramSolver:
                     # Else go for the next piece
                     # Place the piece in the used list
                     used_pieces.append(base_pieces.pop(len(used_pieces) - 1))
-                    pieces_placed_corners.append(current_piece[pieces_used].points)
+                    pieces_placed_corners.append(current_piece[pieces_used].get_points_in_image())
                     pieces_used = pieces_used + 1
 
                     # Reset start position of the new piece
@@ -228,13 +228,128 @@ class TangramSolver:
             return True
         return False
 
+    def get_next_point(self, corner_list, shape_corners_list, node):
+        if node.index_point + 1 < len(corner_list):
+            node.position = corner_list[node.index_point]
+            node.index_point += 1
+            return node , True
+        elif node.index_point < ((len(corner_list) + len(shape_corners_list))-1):
+            node.position = shape_corners_list[node.index_point - len(corner_list)]
+            node.index_point += 1
+            return node, True
+        else:
+            node.position = self.corners[0]
+            node.index_point = 0
+            return node, False
+
+    def change_test_state_shape(self, node, shape_corners_list, increment_rota):
+        # Try another rotation
+        node.rota = node.rota + increment_rota
+        node.piece.rotate_shape_around_pivot(increment_rota)
+
+        if node.rota > 360:
+            # Try another position
+            node.rota = 0
+            node, any_next = self.get_next_point(self.corners,shape_corners_list, node)
+            if any_next == False:
+                # Try another piece
+                node.i += 1
+                node.rota = 0
+                node.index_point = 0
+
+        return node
+
+    def solve_fast_3(self):
+        """
+        Solve the tangram puzzle using a fast algorithm
+        :return: image with all the tangram pieces placed on the drawing
+        """
+        dispo_pieces = [
+            LargeTriangle(32),
+            LargeTriangle(64),
+            Parallelogram(96),
+            Square(128),
+            MediumTriangle(160),
+            SmallTriangle(192),
+            SmallTriangle(224),
+        ]
+        nb_disp_pieces_start = len(dispo_pieces)
+        used_pieces = []
+        nb_used = 0
+        max_angle = 360
+        iteration_rota = 8
+        increment_rota = round(max_angle/iteration_rota)
+        shape_used_corners = []
+
+        # Initializations
+        nodes_list = [Node() for _ in range(0, nb_disp_pieces_start+1)]
+        for i in range(0,len(nodes_list)):
+            if i > 0 :
+                nodes_list[i].prev = nodes_list[i-1]
+            if i < len(nodes_list)-1 :
+                nodes_list[i].next = nodes_list[i+1]
+
+            nodes_list[i].img = self.image.copy()
+            nodes_list[i].position = self.corners[0]
+
+        node = nodes_list[1]
+
+        while self.accept(nodes_list[len(nodes_list)-1].img) != True and nb_used < len(dispo_pieces):
+
+            while node.i < len(dispo_pieces):
+                # cv.imshow("dqsf", node.img)
+                # cv.waitKey(0)
+                # Get the piece
+                node.piece = dispo_pieces[node.i]
+                # Draw the piece
+                node.img = node.prev.img.copy()
+                node.piece.position_in_image = node.position
+                node.img = self.draw_shape_on_image(node.img, node.piece)
+
+                # Check if piece is rejected
+                if self.reject(node.prev.img, node.img, node.piece.color):
+                    print("Piece:"+str(node.piece)+" rejected")
+                    print("Position:" + str(node.position))
+                    node = self.change_test_state_shape(node, shape_used_corners, increment_rota)
+                else:
+                    # Add piece to used pieces and add its corners to the list of usables corners
+                    used_pieces.append(node.piece)
+                    for point in node.piece.get_points_in_image():
+                        shape_used_corners.append(point)
+
+                    print("Piece:"+str(node.piece)+" placed")
+                    print("Position:"+str(node.position))
+
+
+                    # Remove piece from dispo bag
+                    dispo_pieces.pop(node.i)
+                    node = node.next
+                    node.rota = 0
+                    node.index_point = 0
+
+
+            if len(dispo_pieces) > 0:
+
+                node = node.prev
+                # If no pieces were ok then remove last piece from used pieces and add it to dispo bag
+                if node.prev != None :
+                    dispo_pieces.insert(node.i, used_pieces.pop(len(used_pieces) - 1))
+                    shape_used_corners = shape_used_corners[:-len(node.piece.points)]
+
+                # Update piece position + rotation
+                node = self.change_test_state_shape(node, shape_used_corners, increment_rota)
+
+                print("Nothing fits... getting back to the last piece" + str(node.prev.piece))
+
+
+
 
 if __name__ == "__main__":
     ai_tangram = TangramSolver('13.png')
 
     # Shows the image
 
-    ai_tangram.solve_fast()
+    ai_tangram.solve_fast_3()
 
     cv.imshow("f", ai_tangram.image)
     cv.waitKey(0)
@@ -318,4 +433,6 @@ if __name__ == "__main__":
                     x[i] = start_x
                     y[i] = start_y
         return img_list[len(base_pieces)]
+        
+        launched at 15:26
 """

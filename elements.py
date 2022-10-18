@@ -1,5 +1,23 @@
 import numpy as np
 
+class Node:
+    def __init__(self):
+
+        self.i = 0
+
+        self.rota = 0
+        self.position = 0
+        self.index_point = 0
+
+        self.piece = None
+        self.img = None
+
+        self.prev = None
+        self.next = None
+
+    def __str__(self):
+        print("Node: " + str(self.position))
+
 
 class Point:
     """
@@ -72,7 +90,7 @@ class Shape:
             qy = oy + np.sin(angle) * (px - ox) + np.cos(angle) * (py - oy)
             self.points[i] = Point(qx, qy)
 
-    def get_points_in_image(self) -> list[Point]:
+    def get_points_in_image(self) :
         """
         gives the coordinates of the shape in the image reference frame
         :return: the coordinates in a list of points
@@ -98,6 +116,9 @@ class Square(Shape):
         ]
         self.pivot_point = self.points[0]
 
+    def  __str__(self):
+        return "Square"
+
 
 class Triangle(Shape):
     """
@@ -120,6 +141,8 @@ class Triangle(Shape):
         self.pivot_point = self.points[0]
 
 
+
+
 class SmallTriangle(Triangle):
     """
     Small triangle tangram piece
@@ -129,6 +152,8 @@ class SmallTriangle(Triangle):
         self.side_length = (self.total_size * np.sqrt(2)) / 4
         self.setup_triangle()
 
+    def __str__(self):
+        return "Small Triangle"
 
 class MediumTriangle(Triangle):
     """
@@ -139,6 +164,8 @@ class MediumTriangle(Triangle):
         self.side_length = self.total_size / 2
         self.setup_triangle()
 
+    def __str__(self):
+        return "Medium Triangle"
 
 class LargeTriangle(Triangle):
     """
@@ -148,7 +175,8 @@ class LargeTriangle(Triangle):
         super(LargeTriangle, self).__init__(color)
         self.side_length = (self.total_size * np.sqrt(2)) / 2
         self.setup_triangle()
-
+    def __str__(self):
+        return "Large Triangle"
 
 class Parallelogram(Shape):
     """
@@ -171,4 +199,7 @@ class Parallelogram(Shape):
             Point(0, self.height)
         ]
         self.pivot_point = self.points[0]
+
+    def __str__(self):
+        return "Parallelogram"
 
