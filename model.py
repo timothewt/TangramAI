@@ -157,7 +157,7 @@ class TangramSolver:
         Solve the tangram puzzle using a fast algorithm
         :return: image with all the tangram pieces placed on the drawing
         """
-        dispo_pieces = [
+        available_pieces = [
             LargeTriangle(32),
             LargeTriangle(64),
             Parallelogram(96),
@@ -166,7 +166,7 @@ class TangramSolver:
             SmallTriangle(192),
             SmallTriangle(224),
         ]
-        nb_disp_pieces_start = len(dispo_pieces)
+        nb_disp_pieces_start = len(available_pieces)
         used_pieces = []
         nb_used = 0
         max_angle = 360
@@ -187,13 +187,13 @@ class TangramSolver:
 
         node = nodes_list[1]
 
-        while not self.accept(nodes_list[len(nodes_list) - 1].img) and nb_used < len(dispo_pieces):
+        while not self.accept(nodes_list[len(nodes_list) - 1].img) and nb_used < len(available_pieces):
 
-            while node.i < len(dispo_pieces):
+            while node.i < len(available_pieces):
                 # cv.imshow("dqsf", node.img)
                 # cv.waitKey(0)
                 # Get the piece
-                node.piece = dispo_pieces[node.i]
+                node.piece = available_pieces[node.i]
                 # Draw the piece
                 node.img = node.prev.img.copy()
                 node.piece.position_in_image = node.position
@@ -214,17 +214,17 @@ class TangramSolver:
                     print("Position:" + str(node.position))
 
                     # Remove piece from dispo bag
-                    dispo_pieces.pop(node.i)
+                    available_pieces.pop(node.i)
                     node = node.next
                     node.rota = 0
                     node.index_point = 0
 
-            if len(dispo_pieces) > 0:
+            if len(available_pieces) > 0:
 
                 node = node.prev
                 # If no pieces were ok then remove last piece from used pieces and add it to dispo bag
                 if node.prev:
-                    dispo_pieces.insert(node.i, used_pieces.pop(len(used_pieces) - 1))
+                    available_pieces.insert(node.i, used_pieces.pop(len(used_pieces) - 1))
                     shape_used_corners = shape_used_corners[:-len(node.piece.points)]
 
                 # Update piece position + rotation
