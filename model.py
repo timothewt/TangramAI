@@ -102,24 +102,22 @@ class TangramSolver:
         ratio = (candidate_image_black_pixels / base_image_black_pixels)
         return ratio < 1 - accept_ratio
 
-    def reject(self, prev_img: np.ndarray([], dtype=int), candidate_img: np.ndarray([], dtype=int)) -> bool:
+    def reject(self, prev_img: np.ndarray([], dtype=int), candidate_img: np.ndarray([], dtype=int), color: int) -> bool:
         """
         Says if the placement of the new piece is rejected considering two criteria:
         If the new piece is placed over another piece
-        Or if less than 95% of the new piece covers the drawing (black pixels)
+        Or if less than 97% of the new piece covers the drawing (black pixels)
         :param prev_img: image before placing the new piece
         :param candidate_img: image with the new piece placed
         :return: True if the piece is rejected, False otherwise
         """
-        accept_ratio = .95
-        covered_non_black_pixels = (prev_img != 0).sum() - (candidate_img != 0).sum()
+        accept_ratio = .97
         covered_black_pixels = (prev_img == 0).sum() - (candidate_img == 0).sum()
+        covered_non_black_pixels = (candidate_img == color).sum() - covered_black_pixels
         if covered_black_pixels == 0 and covered_non_black_pixels == 0:
             return True
-        ratio = covered_black_pixels / (covered_non_black_pixels + covered_black_pixels)
-        if ratio < accept_ratio:
-            return True
-        return False
+        non_black_covered_ratio = covered_black_pixels / (covered_non_black_pixels + covered_black_pixels)
+        return non_black_covered_ratio < accept_ratio
 
     def get_next_point(self, corner_list, shape_corners_list, node):
         if node.index_point + 1 < len(corner_list):
@@ -144,7 +142,7 @@ class TangramSolver:
             # Try another position
             node.rota = 0
             node, any_next = self.get_next_point(self.corners, shape_corners_list, node)
-            if any_next == False:
+            if not any_next:
                 # Try another piece
                 node.i += 1
                 node.rota = 0
@@ -190,8 +188,8 @@ class TangramSolver:
         while not self.accept(nodes_list[len(nodes_list) - 1].img) and nb_used < len(available_pieces):
 
             while node.i < len(available_pieces):
-                # cv.imshow("dqsf", node.img)
-                # cv.waitKey(0)
+                cv.imshow("Tangram", node.img)
+                cv.waitKey(0)
                 # Get the piece
                 node.piece = available_pieces[node.i]
                 # Draw the piece
@@ -200,12 +198,12 @@ class TangramSolver:
                 node.img = self.draw_shape_on_image(node.img, node.piece)
 
                 # Check if piece is rejected
-                if self.reject(node.prev.img, node.img):
+                if self.reject(node.prev.img, node.img, node.piece.color):
                     print("Piece:" + str(node.piece) + " rejected")
                     print("Position:" + str(node.position))
                     node = self.change_test_state_shape(node, shape_used_corners, increment_rota)
                 else:
-                    # Add piece to used pieces and add its corners to the list of usables corners
+                    # Add piece to used pieces and add its corners to the list of usable corners
                     used_pieces.append(node.piece)
                     for point in node.piece.get_points_in_image():
                         shape_used_corners.append(point)
@@ -223,7 +221,7 @@ class TangramSolver:
 
                 node = node.prev
                 # If no pieces were ok then remove last piece from used pieces and add it to dispo bag
-                if node.prev:
+                if node.prev != None:
                     available_pieces.insert(node.i, used_pieces.pop(len(used_pieces) - 1))
                     shape_used_corners = shape_used_corners[:-len(node.piece.points)]
 
