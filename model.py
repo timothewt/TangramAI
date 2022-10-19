@@ -25,7 +25,7 @@ class TangramSolver:
         resized_img_b_w = self.to_b_w(resized_img)  # to b&w to eliminate gray pixels
         return resized_img_b_w
 
-    def get_corners_coordinates(self, img: np.ndarray([], dtype=int)) :
+    def get_corners_coordinates(self, img: np.ndarray([], dtype=int)):
         """
         Gives the coordinates of all the corners of the shape to draw using the Harris corner detection algorithm
         :param img: image from which we want the corners
@@ -90,106 +90,6 @@ class TangramSolver:
         cv.fillPoly(new_img, [pts], shape.color)
         return new_img
 
-    def solve_fast(self):
-
-        base_pieces = [
-            LargeTriangle(32),
-            LargeTriangle(64),
-            Parallelogram(96),
-            Square(128),
-            MediumTriangle(160),
-            SmallTriangle(192),
-            SmallTriangle(224),
-        ]
-
-        used_pieces = []
-
-        img_list = [self.image.copy() for _ in range(0, len(base_pieces) + 1)]
-
-        current_piece = [None for _ in range(0, len(base_pieces))]
-        pieces_used = 0
-        # Used to position image
-        height, width = img_list[0].shape
-        max_angle = 360
-
-        iterationA = 8
-        corner_index_point = [0 for _ in range(0, len(base_pieces))]
-        corner_nb = len(self.corners)
-
-        pieces_placed_corners = []
-        pieces_placed_corners_index = [0 for _ in range(0, len(base_pieces))]
-
-        point_to_test = Point()
-        a = [0 for _ in range(0, len(base_pieces))]
-
-        while not self.accept(img_list[pieces_used]):
-            i = 0
-            # While there is still remaining pieces to try
-            while i < len(base_pieces):
-                #Set the current piece to the piece to test from the unsused pieces
-                current_piece[pieces_used] = base_pieces[i]
-                # Copy last image to add the shape over it
-                img_list[pieces_used + 1] = img_list[pieces_used].copy()
-                # Draw shape on img at pos
-                current_piece[pieces_used].rotate_shape_around_pivot(a[pieces_used] * max_angle / iterationA)
-                current_piece[pieces_used].position_in_image = self.corners[corner_index_point[pieces_used]]
-                img_list[pieces_used + 1] = self.draw_shape_on_image(img_list[pieces_used + 1],
-                                                                     current_piece[pieces_used])
-                current_piece[pieces_used].rotate_shape_around_pivot(-a[pieces_used] * max_angle / iterationA)
-
-
-                # If the solution is not ok then go back
-                if self.reject(img_list[pieces_used], img_list[pieces_used + 1], current_piece[pieces_used].color):
-
-                    # Reset image
-                    img_list[pieces_used + 1] = img_list[pieces_used].copy()
-
-                    # Change rotation of the shape drawing
-                    a[pieces_used] = a[pieces_used] + 1
-                    if a[pieces_used] >= iterationA:
-                        a[pieces_used] = 0
-                        corner_index_point[pieces_used] = corner_index_point[pieces_used] + 1
-
-                    # Change position
-                    if corner_index_point[pieces_used] < len(self.corners)-1:
-                        point_to_test = self.corners[corner_index_point[pieces_used]]
-                    elif pieces_placed_corners_index[pieces_used] < len(pieces_placed_corners)-1:
-                        point_to_test = pieces_placed_corners[pieces_placed_corners_index[pieces_used]]
-                    else:
-                        # Change piece
-                        i = i + 1
-                        # Reset start position of the new piece
-                        a[pieces_used] = 0
-                        corner_index_point[pieces_used] = 0
-                        pieces_placed_corners_index[pieces_used] = 0
-
-                else:
-                    cv.imshow("dqsf", img_list[pieces_used + 1])
-                    
-                    cv.waitKey(0)
-                    print(pieces_used)
-                    # Else go for the next piece
-                    # Place the piece in the used list
-                    used_pieces.append(base_pieces.pop(len(used_pieces) - 1))
-                    pieces_placed_corners.append(current_piece[pieces_used].get_points_in_image())
-                    pieces_used = pieces_used + 1
-
-                    # Reset start position of the new piece
-                    a[pieces_used] = 0
-                    corner_index_point[pieces_used] = 0
-            else:
-                # Remove piece placement
-                used_pieces.pop(len(used_pieces)-1)
-                pieces_used = pieces_used - 1
-                #Add piece to unused
-                base_pieces.append((current_piece[pieces_used -1 ]))
-                # Remove the corners
-                pieces_placed_corners = pieces_placed_corners[:len(pieces_placed_corners) - len(current_piece[pieces_used - 1].points)]
-                # Continue the placement
-                a[pieces_used] = a[pieces_used] + 1
-
-        return img_list[len(base_pieces)]
-
     def accept(self, candidate_image: np.ndarray([], dtype=int)) -> bool:
         """
         Says if the placement of all the pieces is accepted, i.e. the pieces cover at least 97% of the drawing
@@ -202,28 +102,21 @@ class TangramSolver:
         ratio = (candidate_image_black_pixels / base_image_black_pixels)
         return ratio < 1 - accept_ratio
 
-    def reject(self, prev_img: np.ndarray([], dtype=int), candidate_img: np.ndarray([], dtype=int),
-               new_color: int) -> bool:
+    def reject(self, prev_img: np.ndarray([], dtype=int), candidate_img: np.ndarray([], dtype=int)) -> bool:
         """
         Says if the placement of the new piece is rejected considering two criteria:
         If the new piece is placed over another piece
-        Or if less than 97% of the new piece covers the drawing (black pixels)
+        Or if less than 95% of the new piece covers the drawing (black pixels)
         :param prev_img: image before placing the new piece
         :param candidate_img: image with the new piece placed
-        :param new_color: color of the new piece
         :return: True if the piece is rejected, False otherwise
         """
-        # if new piece is placed on top of another
-        new_img_positions = (candidate_img == new_color)
-        for new_pixel in np.argwhere(new_img_positions):
-            if prev_img[new_pixel[0], new_pixel[1]] != 255 and prev_img[new_pixel[0], new_pixel[1]] != 0:
-                return True
-        accept_ratio = .97
-        covered_white_pixels = (prev_img == 255).sum() - (candidate_img == 255).sum()
+        accept_ratio = .95
+        covered_non_black_pixels = (prev_img != 0).sum() - (candidate_img != 0).sum()
         covered_black_pixels = (prev_img == 0).sum() - (candidate_img == 0).sum()
-        if covered_black_pixels == 0 and covered_white_pixels == 0:
+        if covered_black_pixels == 0 and covered_non_black_pixels == 0:
             return True
-        ratio = covered_black_pixels / (covered_white_pixels + covered_black_pixels)
+        ratio = covered_black_pixels / (covered_non_black_pixels + covered_black_pixels)
         if ratio < accept_ratio:
             return True
         return False
@@ -232,8 +125,8 @@ class TangramSolver:
         if node.index_point + 1 < len(corner_list):
             node.position = corner_list[node.index_point]
             node.index_point += 1
-            return node , True
-        elif node.index_point < ((len(corner_list) + len(shape_corners_list))-1):
+            return node, True
+        elif node.index_point < ((len(corner_list) + len(shape_corners_list)) - 1):
             node.position = shape_corners_list[node.index_point - len(corner_list)]
             node.index_point += 1
             return node, True
@@ -250,7 +143,7 @@ class TangramSolver:
         if node.rota > 360:
             # Try another position
             node.rota = 0
-            node, any_next = self.get_next_point(self.corners,shape_corners_list, node)
+            node, any_next = self.get_next_point(self.corners, shape_corners_list, node)
             if any_next == False:
                 # Try another piece
                 node.i += 1
@@ -278,23 +171,23 @@ class TangramSolver:
         nb_used = 0
         max_angle = 360
         iteration_rota = 8
-        increment_rota = round(max_angle/iteration_rota)
+        increment_rota = round(max_angle / iteration_rota)
         shape_used_corners = []
 
         # Initializations
-        nodes_list = [Node() for _ in range(0, nb_disp_pieces_start+1)]
-        for i in range(0,len(nodes_list)):
-            if i > 0 :
-                nodes_list[i].prev = nodes_list[i-1]
-            if i < len(nodes_list)-1 :
-                nodes_list[i].next = nodes_list[i+1]
+        nodes_list = [Node() for _ in range(0, nb_disp_pieces_start + 1)]
+        for i in range(0, len(nodes_list)):
+            if i > 0:
+                nodes_list[i].prev = nodes_list[i - 1]
+            if i < len(nodes_list) - 1:
+                nodes_list[i].next = nodes_list[i + 1]
 
             nodes_list[i].img = self.image.copy()
             nodes_list[i].position = self.corners[0]
 
         node = nodes_list[1]
 
-        while self.accept(nodes_list[len(nodes_list)-1].img) != True and nb_used < len(dispo_pieces):
+        while not self.accept(nodes_list[len(nodes_list) - 1].img) and nb_used < len(dispo_pieces):
 
             while node.i < len(dispo_pieces):
                 # cv.imshow("dqsf", node.img)
@@ -307,8 +200,8 @@ class TangramSolver:
                 node.img = self.draw_shape_on_image(node.img, node.piece)
 
                 # Check if piece is rejected
-                if self.reject(node.prev.img, node.img, node.piece.color):
-                    print("Piece:"+str(node.piece)+" rejected")
+                if self.reject(node.prev.img, node.img):
+                    print("Piece:" + str(node.piece) + " rejected")
                     print("Position:" + str(node.position))
                     node = self.change_test_state_shape(node, shape_used_corners, increment_rota)
                 else:
@@ -317,9 +210,8 @@ class TangramSolver:
                     for point in node.piece.get_points_in_image():
                         shape_used_corners.append(point)
 
-                    print("Piece:"+str(node.piece)+" placed")
-                    print("Position:"+str(node.position))
-
+                    print("Piece:" + str(node.piece) + " placed")
+                    print("Position:" + str(node.position))
 
                     # Remove piece from dispo bag
                     dispo_pieces.pop(node.i)
@@ -327,12 +219,11 @@ class TangramSolver:
                     node.rota = 0
                     node.index_point = 0
 
-
             if len(dispo_pieces) > 0:
 
                 node = node.prev
                 # If no pieces were ok then remove last piece from used pieces and add it to dispo bag
-                if node.prev != None :
+                if node.prev:
                     dispo_pieces.insert(node.i, used_pieces.pop(len(used_pieces) - 1))
                     shape_used_corners = shape_used_corners[:-len(node.piece.points)]
 
@@ -340,8 +231,6 @@ class TangramSolver:
                 node = self.change_test_state_shape(node, shape_used_corners, increment_rota)
 
                 print("Nothing fits... getting back to the last piece" + str(node.prev.piece))
-
-
 
 
 if __name__ == "__main__":
@@ -353,9 +242,6 @@ if __name__ == "__main__":
 
     cv.imshow("f", ai_tangram.image)
     cv.waitKey(0)
-
-
-
 
 """
 
@@ -435,4 +321,104 @@ if __name__ == "__main__":
         return img_list[len(base_pieces)]
         
         launched at 15:26
+
+    def solve_fast(self):
+
+        base_pieces = [
+            LargeTriangle(32),
+            LargeTriangle(64),
+            Parallelogram(96),
+            Square(128),
+            MediumTriangle(160),
+            SmallTriangle(192),
+            SmallTriangle(224),
+        ]
+
+        used_pieces = []
+
+        img_list = [self.image.copy() for _ in range(0, len(base_pieces) + 1)]
+
+        current_piece = [Shape() for _ in range(0, len(base_pieces))]
+        pieces_used = 0
+        # Used to position image
+        height, width = img_list[0].shape
+        max_angle = 360
+
+        iterationA = 8
+        corner_index_point = [0 for _ in range(0, len(base_pieces))]
+        corner_nb = len(self.corners)
+
+        pieces_placed_corners = []
+        pieces_placed_corners_index = [0 for _ in range(0, len(base_pieces))]
+
+        point_to_test = Point()
+        a = [0 for _ in range(0, len(base_pieces))]
+
+        while not self.accept(img_list[pieces_used]):
+            i = 0
+            # While there is still remaining pieces to try
+            while i < len(base_pieces):
+                #Set the current piece to the piece to test from the unsused pieces
+                current_piece[pieces_used] = base_pieces[i]
+                # Copy last image to add the shape over it
+                img_list[pieces_used + 1] = img_list[pieces_used].copy()
+                # Draw shape on img at pos
+                current_piece[pieces_used].rotate_shape_around_pivot(a[pieces_used] * max_angle / iterationA)
+                current_piece[pieces_used].position_in_image = self.corners[corner_index_point[pieces_used]]
+                img_list[pieces_used + 1] = self.draw_shape_on_image(img_list[pieces_used + 1],
+                                                                     current_piece[pieces_used])
+                current_piece[pieces_used].rotate_shape_around_pivot(-a[pieces_used] * max_angle / iterationA)
+
+
+                # If the solution is not ok then go back
+                if self.reject(img_list[pieces_used], img_list[pieces_used + 1]):
+
+                    # Reset image
+                    img_list[pieces_used + 1] = img_list[pieces_used].copy()
+
+                    # Change rotation of the shape drawing
+                    a[pieces_used] = a[pieces_used] + 1
+                    if a[pieces_used] >= iterationA:
+                        a[pieces_used] = 0
+                        corner_index_point[pieces_used] = corner_index_point[pieces_used] + 1
+
+                    # Change position
+                    if corner_index_point[pieces_used] < len(self.corners)-1:
+                        point_to_test = self.corners[corner_index_point[pieces_used]]
+                    elif pieces_placed_corners_index[pieces_used] < len(pieces_placed_corners)-1:
+                        point_to_test = pieces_placed_corners[pieces_placed_corners_index[pieces_used]]
+                    else:
+                        # Change piece
+                        i = i + 1
+                        # Reset start position of the new piece
+                        a[pieces_used] = 0
+                        corner_index_point[pieces_used] = 0
+                        pieces_placed_corners_index[pieces_used] = 0
+
+                else:
+                    cv.imshow("e", img_list[pieces_used + 1])
+                    
+                    cv.waitKey(0)
+                    print(pieces_used)
+                    # Else go for the next piece
+                    # Place the piece in the used list
+                    used_pieces.append(base_pieces.pop(len(used_pieces) - 1))
+                    pieces_placed_corners.append(current_piece[pieces_used].get_points_in_image())
+                    pieces_used = pieces_used + 1
+
+                    # Reset start position of the new piece
+                    a[pieces_used] = 0
+                    corner_index_point[pieces_used] = 0
+            else:
+                # Remove piece placement
+                used_pieces.pop(len(used_pieces)-1)
+                pieces_used = pieces_used - 1
+                #Add piece to unused
+                base_pieces.append((current_piece[pieces_used -1 ]))
+                # Remove the corners
+                pieces_placed_corners = pieces_placed_corners[:len(pieces_placed_corners) - len(current_piece[pieces_used - 1].points)]
+                # Continue the placement
+                a[pieces_used] = a[pieces_used] + 1
+
+        return img_list[len(base_pieces)]
 """
