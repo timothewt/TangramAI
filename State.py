@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import cv2 as cv
 from copy import deepcopy
@@ -35,7 +37,7 @@ class State:
 
     def find_all_piece_placements(self, piece):  # -> image, corners
         placements = []
-        rotations_number = 12
+        rotations_number = 8
         for corner in self.corners:
             piece.position_in_image = corner
             for _ in range(rotations_number):
@@ -72,7 +74,7 @@ class State:
         :param candidate_img: image with the new piece placed
         :return: True if the piece is rejected, False otherwise
         """
-        accept_ratio = .985
+        accept_ratio = .97
         covered_black_pixels = (prev_img == 0).sum() - (candidate_img == 0).sum()
         covered_non_black_pixels = (candidate_img == color).sum() - covered_black_pixels
         if covered_black_pixels == 0 and covered_non_black_pixels == 0:
