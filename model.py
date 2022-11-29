@@ -94,9 +94,9 @@ class TangramSolver:
         """
         Says if the placement of all the pieces is accepted, i.e. the pieces cover at least 97% of the drawing
         :param candidate_image: image with all the tangram pieces placed on the drawing
-        :return: True if the tangram pieces cover more than 97% of the drawing, False otherwise
+        :return: True if the tangram pieces cover more than 90% of the drawing, False otherwise
         """
-        accept_ratio = .97  # acceptable ratio of covered black pixels
+        accept_ratio = .9  # acceptable ratio of covered black pixels
         base_image_black_pixels = (self.image == 0).sum()
         candidate_image_black_pixels = (candidate_image == 0).sum()
         ratio = (candidate_image_black_pixels / base_image_black_pixels)
@@ -185,16 +185,20 @@ class TangramSolver:
 
         node = nodes_list[1]
 
-        while not self.accept(nodes_list[len(nodes_list) - 1].img) and nb_used < len(available_pieces):
+        while not self.accept(nodes_list[-1].img) or len(available_pieces) < 0:
 
             while node.i < len(available_pieces):
+
                 cv.imshow("Tangram", node.img)
                 cv.waitKey(0)
                 # Get the piece
                 node.piece = available_pieces[node.i]
                 # Draw the piece
+                # Erase the last move
                 node.img = node.prev.img.copy()
+                #Set the position of the piece to the current analyzed point
                 node.piece.position_in_image = node.position
+                #Draw the shape
                 node.img = self.draw_shape_on_image(node.img, node.piece)
 
                 # Check if piece is rejected
@@ -211,19 +215,19 @@ class TangramSolver:
                     print("Piece:" + str(node.piece) + " placed")
                     print("Position:" + str(node.position))
 
-                    # Remove piece from dispo bag
+                    # Remove piece from available bag
                     available_pieces.pop(node.i)
                     node = node.next
                     node.rota = 0
                     node.index_point = 0
 
             if len(available_pieces) > 0:
-
                 node = node.prev
-                # If no pieces were ok then remove last piece from used pieces and add it to dispo bag
-                if node.prev != None:
+                # If no pieces were ok then remove last piece from used pieces and add it to available bag
+                if node.prev:
                     available_pieces.insert(node.i, used_pieces.pop(len(used_pieces) - 1))
                     shape_used_corners = shape_used_corners[:-len(node.piece.points)]
+                    node.img = node.prev.img.copy()
 
                 # Update piece position + rotation
                 node = self.change_test_state_shape(node, shape_used_corners, increment_rota)
@@ -232,7 +236,7 @@ class TangramSolver:
 
 
 if __name__ == "__main__":
-    ai_tangram = TangramSolver('13.png')
+    ai_tangram = TangramSolver('tangram_unsolved.png')
 
     # Shows the image
 
