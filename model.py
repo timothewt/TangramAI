@@ -74,11 +74,11 @@ class TangramSolver:
         b_w_image = cv.threshold(b_w_image, 30, 255, cv.THRESH_BINARY)[1]
         return b_w_image
 
-    def draw_shape_on_image(self, img: np.ndarray([], dtype=int), shape: Shape) -> np.ndarray([], dtype=int):
+    def draw_shape_on_image(self, img: np.ndarray([], dtype=int), shape: Piece) -> np.ndarray([], dtype=int):
         """
         draws a shape on the image from its vertexes coordinates
         :param img: image we want to draw in
-        :param shape: Shape object we want to draw
+        :param shape: Piece object we want to draw
         :return the new matrix of the image with the shape in it
         """
         new_img = img.copy()
@@ -111,7 +111,7 @@ class TangramSolver:
         :param candidate_img: image with the new piece placed
         :return: True if the piece is rejected, False otherwise
         """
-        accept_ratio = .97
+        accept_ratio = .95
         covered_black_pixels = (prev_img == 0).sum() - (candidate_img == 0).sum()
         covered_non_black_pixels = (candidate_img == color).sum() - covered_black_pixels
         if covered_black_pixels == 0 and covered_non_black_pixels == 0:
@@ -134,6 +134,9 @@ class TangramSolver:
             return node, False
 
     def change_test_state_shape(self, node, shape_corners_list, increment_rota):
+
+        # if node.piece == None :
+        #    return node
         # Try another rotation
         node.rotation = node.rotation + increment_rota
         node.piece.rotate_shape_around_pivot(increment_rota)
@@ -166,7 +169,6 @@ class TangramSolver:
         ]
         nb_disp_pieces_start = len(available_pieces)
         used_pieces = []
-        nb_used = 0
         max_angle = 360
         iteration_rota = 8
         increment_rota = round(max_angle / iteration_rota)
@@ -203,8 +205,8 @@ class TangramSolver:
 
                 # Check if piece is rejected
                 if self.reject(node.prev.img, node.img, node.piece.color):
-                    print("Piece:" + str(node.piece) + " rejected")
-                    print("Position:" + str(node.position))
+                    # print("Piece:" + str(node.piece) + " rejected")
+                    # print("Position:" + str(node.position))
                     node = self.change_test_state_shape(node, shape_used_corners, increment_rota)
                 else:
                     # Add piece to used pieces and add its corners to the list of usable corners
@@ -212,8 +214,8 @@ class TangramSolver:
                     for point in node.piece.get_points_in_image():
                         shape_used_corners.append(point)
 
-                    print("Piece:" + str(node.piece) + " placed")
-                    print("Position:" + str(node.position))
+                    # print("Piece:" + str(node.piece) + " placed")
+                    # print("Position:" + str(node.position))
 
                     # Remove piece from available bag
                     available_pieces.pop(node.i)
@@ -230,9 +232,12 @@ class TangramSolver:
                     node.img = node.prev.img.copy()
 
                 # Update piece position + rotation
-                node = self.change_test_state_shape(node, shape_used_corners, increment_rota)
+                try:
+                    node = self.change_test_state_shape(node, shape_used_corners, increment_rota)
 
-                print("Nothing fits... getting back to the last piece" + str(node.prev.piece))
+                    # print("Nothing fits... getting back to the last piece" + str(node.prev.piece))
+                except AttributeError:
+                    print(node)
 
 
 if __name__ == "__main__":
@@ -243,184 +248,3 @@ if __name__ == "__main__":
     ai_tangram.solve_fast_3()
 
     cv.imshow("f", ai_tangram.image)
-    cv.waitKey(0)
-
-"""
-
-    def solve_very_slowly(self) -> np.ndarray([], dtype=int):
-        
-        Solves the problem by filling the drawing with the 7 tangram pieces using a backtracking algorithm.
-        This method is very slow and will take way too long to work
-        :return: the image containing a solution with the tangram pieces covering the drawing
-        
-
-        base_pieces = [
-            LargeTriangle(32),
-            LargeTriangle(64),
-            Parallelogram(96),
-            Square(128),
-            MediumTriangle(160),
-            SmallTriangle(192),
-            SmallTriangle(224),
-        ]
-        img_list = [self.image.copy() for _ in range(0, len(base_pieces) + 1)]
-        i = 0
-
-        # Used to position image
-        height, width = img_list[0].shape
-        max_angle = 360
-        iterationX = 50
-        iterationY = 50
-        iterationA = 8
-
-        start_x = 5
-        start_y = 5
-
-        end_x = 45
-        end_y = 45
-
-        x = [start_x for _ in range(0, len(base_pieces))]
-        y = [start_y for _ in range(0, len(base_pieces))]
-        a = [0 for _ in range(0, len(base_pieces))]
-
-        while not self.accept(img_list[i]) and 6 >= i >= 0:
-            i = 0
-            while i < len(base_pieces):
-                # Copy last image to add the shape over it
-                img_list[i + 1] = img_list[i].copy()
-                # Draw shape on img at pos
-                base_pieces[i].rotate_shape_around_pivot(a[i] * max_angle / iterationA)
-                base_pieces[i].position_in_image = Point(x[i] * width / iterationX, y[i] * height / iterationY)
-                img_list[i + 1] = self.draw_shape_on_image(img_list[i + 1], base_pieces[i])
-                base_pieces[i].rotate_shape_around_pivot(-a[i] * max_angle / iterationA)
-
-                # If the solution is not ok then go back
-                if self.reject(img_list[i], img_list[i + 1], base_pieces[i].color):
-
-                    # Reset image
-                    img_list[i + 1] = img_list[i].copy()
-
-                    # Change position of the shape drawing
-                    a[i] = a[i] + 1
-                    if a[i] >= iterationA:
-                        a[i] = 0
-                        x[i] = x[i] + 1
-                    if x[i] >= end_x:
-                        x[i] = start_x
-                        y[i] = y[i] + 1
-                    if y[i] >= end_y:
-                        i = i - 1
-                        a[i] = a[i] + 1
-                elif i != 6:  # Else go for the next piece
-
-                    cv.imshow("dqsf", img_list[i + 1])
-                    cv.waitKey(0)
-                    i = i + 1
-                    # Reset start position of the new piece
-                    a[i] = 0
-                    x[i] = start_x
-                    y[i] = start_y
-        return img_list[len(base_pieces)]
-        
-        launched at 15:26
-
-    def solve_fast(self):
-
-        base_pieces = [
-            LargeTriangle(32),
-            LargeTriangle(64),
-            Parallelogram(96),
-            Square(128),
-            MediumTriangle(160),
-            SmallTriangle(192),
-            SmallTriangle(224),
-        ]
-
-        used_pieces = []
-
-        img_list = [self.image.copy() for _ in range(0, len(base_pieces) + 1)]
-
-        current_piece = [Shape() for _ in range(0, len(base_pieces))]
-        pieces_used = 0
-        # Used to position image
-        height, width = img_list[0].shape
-        max_angle = 360
-
-        iterationA = 8
-        corner_index_point = [0 for _ in range(0, len(base_pieces))]
-        corner_nb = len(self.corners)
-
-        pieces_placed_corners = []
-        pieces_placed_corners_index = [0 for _ in range(0, len(base_pieces))]
-
-        point_to_test = Point()
-        a = [0 for _ in range(0, len(base_pieces))]
-
-        while not self.accept(img_list[pieces_used]):
-            i = 0
-            # While there is still remaining pieces to try
-            while i < len(base_pieces):
-                #Set the current piece to the piece to test from the unsused pieces
-                current_piece[pieces_used] = base_pieces[i]
-                # Copy last image to add the shape over it
-                img_list[pieces_used + 1] = img_list[pieces_used].copy()
-                # Draw shape on img at pos
-                current_piece[pieces_used].rotate_shape_around_pivot(a[pieces_used] * max_angle / iterationA)
-                current_piece[pieces_used].position_in_image = self.corners[corner_index_point[pieces_used]]
-                img_list[pieces_used + 1] = self.draw_shape_on_image(img_list[pieces_used + 1],
-                                                                     current_piece[pieces_used])
-                current_piece[pieces_used].rotate_shape_around_pivot(-a[pieces_used] * max_angle / iterationA)
-
-
-                # If the solution is not ok then go back
-                if self.reject(img_list[pieces_used], img_list[pieces_used + 1]):
-
-                    # Reset image
-                    img_list[pieces_used + 1] = img_list[pieces_used].copy()
-
-                    # Change rotation of the shape drawing
-                    a[pieces_used] = a[pieces_used] + 1
-                    if a[pieces_used] >= iterationA:
-                        a[pieces_used] = 0
-                        corner_index_point[pieces_used] = corner_index_point[pieces_used] + 1
-
-                    # Change position
-                    if corner_index_point[pieces_used] < len(self.corners)-1:
-                        point_to_test = self.corners[corner_index_point[pieces_used]]
-                    elif pieces_placed_corners_index[pieces_used] < len(pieces_placed_corners)-1:
-                        point_to_test = pieces_placed_corners[pieces_placed_corners_index[pieces_used]]
-                    else:
-                        # Change piece
-                        i = i + 1
-                        # Reset start position of the new piece
-                        a[pieces_used] = 0
-                        corner_index_point[pieces_used] = 0
-                        pieces_placed_corners_index[pieces_used] = 0
-
-                else:
-                    cv.imshow("e", img_list[pieces_used + 1])
-                    
-                    cv.waitKey(0)
-                    print(pieces_used)
-                    # Else go for the next piece
-                    # Place the piece in the used list
-                    used_pieces.append(base_pieces.pop(len(used_pieces) - 1))
-                    pieces_placed_corners.append(current_piece[pieces_used].get_points_in_image())
-                    pieces_used = pieces_used + 1
-
-                    # Reset start position of the new piece
-                    a[pieces_used] = 0
-                    corner_index_point[pieces_used] = 0
-            else:
-                # Remove piece placement
-                used_pieces.pop(len(used_pieces)-1)
-                pieces_used = pieces_used - 1
-                #Add piece to unused
-                base_pieces.append((current_piece[pieces_used -1 ]))
-                # Remove the corners
-                pieces_placed_corners = pieces_placed_corners[:len(pieces_placed_corners) - len(current_piece[pieces_used - 1].points)]
-                # Continue the placement
-                a[pieces_used] = a[pieces_used] + 1
-
-        return img_list[len(base_pieces)]
-"""

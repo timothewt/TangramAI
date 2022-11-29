@@ -1,24 +1,6 @@
 import numpy as np
 
 
-class Node:
-    def __init__(self):
-        self.i = 0
-
-        self.rotation = 0
-        self.position = 0
-        self.index_point = 0
-
-        self.piece = None
-        self.img = None
-
-        self.prev = None
-        self.next = None
-
-    def __str__(self):
-        print("Node: " + str(self.position))
-
-
 class Point:
     """
     Used to represent a Point of a tangram piece, note that the (0, 0) is at the top left and x goes positive downwards
@@ -52,7 +34,7 @@ class Point:
         return new_pt
 
 
-class Shape:
+class Piece:
     """
     Used to represent the tangram pieces
     ---
@@ -103,7 +85,7 @@ class Shape:
         return coordinates_points
 
 
-class Square(Shape):
+class Square(Piece):
     """
     Square tangram piece
     """
@@ -123,7 +105,7 @@ class Square(Shape):
         return "Square"
 
 
-class Triangle(Shape):
+class Triangle(Piece):
     """
     Triangle tangram piece
     """
@@ -187,7 +169,7 @@ class LargeTriangle(Triangle):
         return "Large Triangle"
 
 
-class Parallelogram(Shape):
+class Parallelogram(Piece):
     """
     Parallelogram tangram piece
     """

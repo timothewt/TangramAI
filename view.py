@@ -1,6 +1,7 @@
 import tkinter
 import tkinter.filedialog
 import pygame
+import cv2 as cv
 
 WIDTH = 640
 HEIGHT = 480
@@ -12,6 +13,7 @@ def prompt_file():
     top = tkinter.Tk()
     top.withdraw()  # hides window
     file_name = tkinter.filedialog.askopenfilename(parent=top)
+    img = cv.imread(file_name)
     top.destroy()
     return file_name
 
