@@ -5,7 +5,7 @@ class Node:
     def __init__(self):
         self.i = 0
 
-        self.rota = 0
+        self.rotation = 0
         self.position = 0
         self.index_point = 0
 

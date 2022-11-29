@@ -135,17 +135,17 @@ class TangramSolver:
 
     def change_test_state_shape(self, node, shape_corners_list, increment_rota):
         # Try another rotation
-        node.rota = node.rota + increment_rota
+        node.rotation = node.rotation + increment_rota
         node.piece.rotate_shape_around_pivot(increment_rota)
 
-        if node.rota > 360:
+        if node.rotation > 360:
             # Try another position
-            node.rota = 0
+            node.rotation = 0
             node, any_next = self.get_next_point(self.corners, shape_corners_list, node)
             if not any_next:
                 # Try another piece
                 node.i += 1
-                node.rota = 0
+                node.rotation = 0
                 node.index_point = 0
 
         return node
@@ -218,7 +218,7 @@ class TangramSolver:
                     # Remove piece from available bag
                     available_pieces.pop(node.i)
                     node = node.next
-                    node.rota = 0
+                    node.rotation = 0
                     node.index_point = 0
 
             if len(available_pieces) > 0:
