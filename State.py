@@ -17,8 +17,6 @@ class State:
         for i in range(len(self.available_pieces)):
             work_piece: Piece = deepcopy(self.available_pieces[i])
             for placement in self.find_all_piece_placements(work_piece):
-                cv.imshow("Tangram", placement['image'])
-                cv.waitKey(0)
                 new_available_pieces = deepcopy(self.available_pieces)
                 new_available_pieces.pop(i)
                 new_corners = deepcopy(self.corners)
@@ -69,12 +67,12 @@ class State:
         """
         Says if the placement of the new piece is rejected considering two criteria:
         If the new piece is placed over another piece
-        Or if less than 97% of the new piece covers the drawing (black pixels)
+        Or if less than 99% of the new piece covers the drawing (black pixels)
         :param prev_img: image before placing the new piece
         :param candidate_img: image with the new piece placed
         :return: True if the piece is rejected, False otherwise
         """
-        accept_ratio = .97
+        accept_ratio = .985
         covered_black_pixels = (prev_img == 0).sum() - (candidate_img == 0).sum()
         covered_non_black_pixels = (candidate_img == color).sum() - covered_black_pixels
         if covered_black_pixels == 0 and covered_non_black_pixels == 0:
@@ -98,6 +96,8 @@ def search(initial_state) -> Node:
         new_nodes = [Node(state, node) for state in node.current_state.next_states()]
         new_nodes.extend(nodes)  # we put the new nodes at the top of the stack
         nodes = new_nodes
+        cv.imshow("Tangram", nodes[0].current_state.image)
+        cv.waitKey(0)
     return None
 
 
@@ -114,4 +114,6 @@ if __name__ == "__main__":
     ]
 
     root_state = State(av_pieces, [], ai_tangram.image, ai_tangram.corners)
-    search(root_state)
+    result = search(root_state)
+    cv.imshow("Tangram", result.current_state.image)
+    cv.waitKey(0)
