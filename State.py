@@ -1,6 +1,8 @@
 from __future__ import annotations
 import cv2 as cv
 from copy import deepcopy
+
+from ImageProcessor import show_image
 from elements import *
 
 
@@ -23,7 +25,6 @@ class State:
             working_piece = self.working_pieces[self.current_working_piece_index]
 
             if self.corners[self.current_corner_index] not in working_piece.corners_visited:
-
                 working_piece.position_in_image = self.corners[self.current_corner_index]
                 candidate_image = self.image.copy()
                 self.draw_shape_on_image(candidate_image, working_piece)
@@ -32,6 +33,7 @@ class State:
                     new_available_pieces.pop(self.current_working_piece_index)
                     new_corners = self.corners.copy()
                     new_corners.extend(working_piece.get_points_in_image())
+                    show_image(candidate_image)
                     next_state = State(
                         available_pieces=new_available_pieces,
                         image=candidate_image,
@@ -60,40 +62,6 @@ class State:
 
         return next_state
 
-    def next_states(self):
-        next_states: list[State] = []
-        for i in range(len(self.available_pieces)):
-            work_piece: Piece = deepcopy(self.available_pieces[i])
-            for placement in self.find_all_piece_placements(work_piece):
-                new_available_pieces = self.available_pieces.copy()
-                new_available_pieces.pop(i)
-                new_corners = deepcopy(self.corners)
-                new_corners.extend(placement['pieces_corners'])
-                next_states.append(
-                    State(
-                        available_pieces=new_available_pieces,
-                        image=placement['image'],
-                        corners=new_corners
-                    )
-                )
-        return next_states
-
-    def find_all_piece_placements(self, piece):  # -> image, corners
-        placements = []
-        rotations_number = 8
-        for corner in self.corners:
-            piece.position_in_image = corner
-            for _ in range(rotations_number):
-                candidate_image = self.image.copy()
-                self.draw_shape_on_image(candidate_image, piece)
-                if self.accept_new_piece(self.image, candidate_image, piece.color):
-                    placements.append({
-                        'image': candidate_image,
-                        'pieces_corners': piece.get_points_in_image()
-                    })
-                piece.rotate_shape_around_pivot(360 // rotations_number)
-        return placements
-
     def draw_shape_on_image(self, image: np.ndarray([], dtype=int), piece):
         """
         draws a shape on the image from its vertexes coordinates
@@ -118,13 +86,17 @@ class State:
         :param candidate_img: image with the new piece placed
         :return: True if the piece is rejected, False otherwise
         """
-        accept_ratio = .97
-        covered_black_pixels = (prev_img == 0).sum() - (candidate_img == 0).sum()
-        covered_non_black_pixels = (candidate_img == color).sum() - covered_black_pixels
-        if covered_black_pixels == 0 and covered_non_black_pixels == 0:
-            return False
-        non_black_covered_ratio = covered_black_pixels / (covered_non_black_pixels + covered_black_pixels)
-        return non_black_covered_ratio > accept_ratio
+        accept_ratio_black_covered = .99  # % of total pixels covered that are black
+        accept_ratio_pieces_covered = .05  # % of total pixels covered that are other pieces
+
+        covered_non_white_pixels = (prev_img < 255).sum() - ((candidate_img < 255).sum() - (candidate_img == color).sum())
+        covered_white_pixels = (prev_img == 255).sum() - (candidate_img == 255).sum()
+        covered_pieces_pixels = ((prev_img < 255).sum() - (prev_img == 0).sum()) - ((candidate_img < 255).sum() - (candidate_img == 0).sum() - (candidate_img == color).sum())
+
+        black_covered_ratio = covered_non_white_pixels / (covered_white_pixels + covered_non_white_pixels)
+        pieces_covered_ratio = covered_pieces_pixels / (covered_non_white_pixels + covered_white_pixels)
+
+        return black_covered_ratio > accept_ratio_black_covered and pieces_covered_ratio < accept_ratio_pieces_covered
 
 
 class Node:
@@ -141,6 +113,9 @@ def search(initial_state) -> Node:  # backtracking
             node = node.previous_node
         else:
             node = Node(current_state=next_state, previous_node=node)
+        if node is None:
+            print("No possible solution.")
+            return None
         if len(node.current_state.available_pieces) == 0:
             print("Found solution!")
             return node

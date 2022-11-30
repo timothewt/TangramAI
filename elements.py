@@ -1,4 +1,5 @@
 import numpy as np
+import settings
 
 
 class Point:
@@ -39,6 +40,7 @@ class Point:
         new_pt.y = self.y + other.y
         return new_pt
 
+
 class Corner(Point):
     def __init__(self, x, y):
         super().__init__(x, y)
@@ -64,8 +66,8 @@ class Piece:
     """
 
     def __init__(self, color: int = 0) -> None:
-        self.total_size = 280  # width of the main square in pixels
-        self.side_length = 280
+        self.total_size = settings.TANGRAM_SIDE_LENGTH  # width of the main square in pixels
+        self.side_length = settings.TANGRAM_SIDE_LENGTH
         self.points = []
         self.position_in_image = Point()
         self.pivot_point = Point()
@@ -140,8 +142,8 @@ class Triangle(Piece):
         """
         self.points = [
             Point(0, 0),
-            Point(0, self.side_length),
-            Point(self.side_length, 0)
+            Point(self.side_length, 0),
+            Point(self.side_length, self.side_length),
         ]
         self.pivot_point = self.points[0]
 
@@ -152,7 +154,7 @@ class SmallTriangle(Triangle):
     """
 
     def __init__(self, color):
-        super(SmallTriangle, self).__init__(color)
+        super().__init__(color)
         self.side_length = (self.total_size * np.sqrt(2)) / 4
         self.setup_triangle()
         self.name = "Small Triangle"
@@ -164,7 +166,7 @@ class MediumTriangle(Triangle):
     """
 
     def __init__(self, color):
-        super(MediumTriangle, self).__init__(color)
+        super().__init__(color)
         self.side_length = self.total_size / 2
         self.setup_triangle()
         self.name = "Medium Triangle"
@@ -176,7 +178,7 @@ class LargeTriangle(Triangle):
     """
 
     def __init__(self, color):
-        super(LargeTriangle, self).__init__(color)
+        super().__init__(color)
         self.side_length = (self.total_size * np.sqrt(2)) / 2
         self.setup_triangle()
         self.name = "Large Triangle"

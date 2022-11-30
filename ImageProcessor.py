@@ -1,4 +1,4 @@
-from math import floor
+from math import floor, sqrt, ceil
 
 import cv2 as cv
 from elements import *
@@ -48,8 +48,8 @@ class ImageProcessor:
         """
         resized_image = img.copy()
         (h, w) = img.shape[:2]
-        resize_ratio = pow(275, 2) / (img == 0).sum()  # 280 being the side of the tangram pieces square, divided by the
-        # number of black pixel on the image which represent the area of the goal shape
+        black_pixels = (img == 0).sum()
+        resize_ratio = ceil(sqrt(pow(settings.TANGRAM_SIDE_LENGTH, 2) / black_pixels) * 10) / 10
         (new_h, new_w) = (int(resize_ratio * h), int(resize_ratio * w))
         resized_image = cv.resize(resized_image, (new_w, new_h), interpolation=cv.INTER_CUBIC)
         self.resize_corners(resize_ratio)
@@ -74,6 +74,11 @@ class ImageProcessor:
         b_w_image = img.copy()
         b_w_image = cv.threshold(b_w_image, 30, 255, cv.THRESH_BINARY)[1]
         return b_w_image
+
+
+def show_image(image):
+    cv.imshow("Tangram", image)
+    cv.waitKey(0)
 
 
 if __name__ == "__main__":
