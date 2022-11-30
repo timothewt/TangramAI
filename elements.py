@@ -15,12 +15,18 @@ class Point:
         self.x = round(x)
         self.y = round(y)
 
+    def __eq__(self, other) -> bool:
+        return self.x == other.x and self.y == other.y
+
     def __str__(self) -> str:
         """
         displays the coordinates in a string
         :return: the string "x:(x coordinate), y:(y coordinate)"
         """
         return f"x:{self.x}, y:{self.y}"
+
+    def __repr__(self) -> str:
+        return str(self)
 
     def __add__(self, other):
         """
@@ -32,6 +38,11 @@ class Point:
         new_pt.x = self.x + other.x
         new_pt.y = self.y + other.y
         return new_pt
+
+class Corner(Point):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.edge_from_corner = None
 
 
 class Piece:
@@ -58,14 +69,17 @@ class Piece:
         self.points = []
         self.position_in_image = Point()
         self.pivot_point = Point()
+        self.rotation = 0
         self.color = color
         self.used = False
+        self.corners_visited = []
 
     def rotate_shape_around_pivot(self, angle: float) -> None:
         """
         changes the coordinates of the shape to the new coordinates after a rotation of (angle)°
         :param angle: angle of rotation in degrees (clockwise)
         """
+        self.rotation += angle
         angle = np.deg2rad(angle)
         for i in range(0, len(self.points)):
             ox, oy = self.pivot_point.x, self.pivot_point.y
