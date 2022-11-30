@@ -73,6 +73,13 @@ class Piece:
         self.color = color
         self.used = False
         self.corners_visited = []
+        self.name = None
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return str(self)
 
     def rotate_shape_around_pivot(self, angle: float) -> None:
         """
@@ -114,9 +121,7 @@ class Square(Piece):
             Point(0, self.side_length)
         ]
         self.pivot_point = self.points[0]
-
-    def __str__(self):
-        return "Square"
+        self.name = "Square"
 
 
 class Triangle(Piece):
@@ -150,9 +155,7 @@ class SmallTriangle(Triangle):
         super(SmallTriangle, self).__init__(color)
         self.side_length = (self.total_size * np.sqrt(2)) / 4
         self.setup_triangle()
-
-    def __str__(self):
-        return "Small Triangle"
+        self.name = "Small Triangle"
 
 
 class MediumTriangle(Triangle):
@@ -164,9 +167,7 @@ class MediumTriangle(Triangle):
         super(MediumTriangle, self).__init__(color)
         self.side_length = self.total_size / 2
         self.setup_triangle()
-
-    def __str__(self):
-        return "Medium Triangle"
+        self.name = "Medium Triangle"
 
 
 class LargeTriangle(Triangle):
@@ -178,9 +179,7 @@ class LargeTriangle(Triangle):
         super(LargeTriangle, self).__init__(color)
         self.side_length = (self.total_size * np.sqrt(2)) / 2
         self.setup_triangle()
-
-    def __str__(self):
-        return "Large Triangle"
+        self.name = "Large Triangle"
 
 
 class Parallelogram(Piece):
@@ -192,12 +191,6 @@ class Parallelogram(Piece):
         super().__init__(color)
         self.long_side_length = self.total_size / 2
         self.height = self.total_size / 4
-        """ height = |
-        _________
-        \   |    \
-         \  |     \
-          \_|______\
-        """
         self.points = [
             Point(0, 0),
             Point(self.long_side_length, 0),
@@ -205,6 +198,13 @@ class Parallelogram(Piece):
             Point(self.long_side_length / 2, self.height)
         ]
         self.pivot_point = self.points[0]
+        self.name = "Parallelogram"
+        self.is_flipped = False
 
-    def __str__(self):
-        return "Parallelogram"
+    def flip(self) -> None:
+        temp_point = self.points[0]
+        self.points[0] = self.points[1]
+        self.points[1] = temp_point
+        temp_point = self.points[2]
+        self.points[2] = self.points[3]
+        self.points[3] = temp_point

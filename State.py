@@ -1,9 +1,7 @@
 from __future__ import annotations
-import time
-import numpy as np
 import cv2 as cv
 from copy import deepcopy
-from model import TangramSolver
+from model import ImageProcessor
 from elements import *
 
 
@@ -21,6 +19,8 @@ class State:
     def get_next_state(self):
         next_state = None
         while next_state is None and self.current_working_piece_index < len(self.working_pieces):
+            if self.working_pieces[0].name == "Large Triangle" and self.current_working_piece_index > 0:  # if the large triangles are not placed we can't go further
+                return None
             working_piece = self.working_pieces[self.current_working_piece_index]
 
             if self.corners[self.current_corner_index] not in working_piece.corners_visited:
@@ -47,6 +47,8 @@ class State:
                 if working_piece.rotation >= 360:
                     self.current_corner_index += 1
                     working_piece.rotation = 0
+            else:
+                self.current_corner_index += 1
 
             if self.current_corner_index >= len(self.corners):
                 self.current_corner_index = 0
@@ -135,7 +137,6 @@ def search(initial_state) -> Node:  # backtracking
     while node.current_state is not None:
         next_state = node.current_state.get_next_state()
         if next_state is None:
-            print("backtracking")
             node = node.previous_node
         else:
             node = Node(current_state=next_state, previous_node=node)
@@ -148,18 +149,4 @@ def search(initial_state) -> Node:  # backtracking
 
 
 if __name__ == "__main__":
-    ai_tangram = TangramSolver('tangram_unsolved.png')
-    av_pieces = [
-        LargeTriangle(32),
-        LargeTriangle(64),
-        Parallelogram(96),
-        Square(128),
-        MediumTriangle(160),
-        SmallTriangle(192),
-        SmallTriangle(224),
-    ]
-
-    root_state = State(av_pieces, ai_tangram.image, ai_tangram.corners)
-    result = search(root_state)
-    cv.imshow("Tangram", result.current_state.image)
-    cv.waitKey(0)
+    pass
