@@ -1,3 +1,5 @@
+from math import floor
+
 import cv2 as cv
 from elements import *
 
@@ -46,7 +48,7 @@ class ImageProcessor:
         """
         resized_image = img.copy()
         (h, w) = img.shape[:2]
-        resize_ratio = pow(270, 2) / (img == 0).sum()  # 280 being the side of the tangram pieces square, divided by the
+        resize_ratio = pow(275, 2) / (img == 0).sum()  # 280 being the side of the tangram pieces square, divided by the
         # number of black pixel on the image which represent the area of the goal shape
         (new_h, new_w) = (int(resize_ratio * h), int(resize_ratio * w))
         resized_image = cv.resize(resized_image, (new_w, new_h), interpolation=cv.INTER_CUBIC)
@@ -60,7 +62,7 @@ class ImageProcessor:
         """
         resized_corners = []
         for i in range(0, len(self.corners)):
-            resized_corners.append(Point(self.corners[i][0] * resize_ratio, self.corners[i][1] * resize_ratio))
+            resized_corners.append(Point(floor(self.corners[i][0] * resize_ratio), floor(self.corners[i][1] * resize_ratio)))
         self.corners = resized_corners
 
     def to_b_w(self, img: np.ndarray([], dtype=int)) -> np.ndarray([], dtype=int):

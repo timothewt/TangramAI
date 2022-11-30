@@ -1,7 +1,6 @@
 from __future__ import annotations
 import cv2 as cv
 from copy import deepcopy
-from model import ImageProcessor
 from elements import *
 
 
@@ -28,7 +27,6 @@ class State:
                 working_piece.position_in_image = self.corners[self.current_corner_index]
                 candidate_image = self.image.copy()
                 self.draw_shape_on_image(candidate_image, working_piece)
-
                 if self.accept_new_piece(self.image, candidate_image, working_piece.color):
                     new_available_pieces = self.available_pieces.copy()
                     new_available_pieces.pop(self.current_working_piece_index)
@@ -52,7 +50,10 @@ class State:
 
             if self.current_corner_index >= len(self.corners):
                 self.current_corner_index = 0
-                self.current_working_piece_index += 1
+                if self.working_pieces[self.current_working_piece_index].name == "Parallelogram" and not self.working_pieces[self.current_working_piece_index].is_flipped:
+                    self.working_pieces[self.current_working_piece_index].flip()
+                else:
+                    self.current_working_piece_index += 1
 
         if next_state is None and self.last_piece_placed is not None:
             self.last_piece_placed.corners_visited.append(self.last_piece_placed_corner)
@@ -112,7 +113,7 @@ class State:
         """
         Says if the placement of the new piece is rejected considering two criteria:
         If the new piece is placed over another piece
-        Or if less than 99% of the new piece covers the drawing (black pixels)
+        Or if less than 97% of the new piece covers the drawing (black pixels)
         :param prev_img: image before placing the new piece
         :param candidate_img: image with the new piece placed
         :return: True if the piece is rejected, False otherwise
@@ -143,8 +144,6 @@ def search(initial_state) -> Node:  # backtracking
         if len(node.current_state.available_pieces) == 0:
             print("Found solution!")
             return node
-        cv.imshow("Tangram", node.current_state.image)
-        cv.waitKey(0)
     return None
 
 

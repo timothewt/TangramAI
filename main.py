@@ -5,8 +5,8 @@ from model import ImageProcessor
 
 
 if __name__ == "__main__":
-    ai_tangram = ImageProcessor('13.png')
-    cv.imshow("Tangram", ai_tangram.image)
+    image = ImageProcessor('13.png')
+    cv.imshow("Tangram", image.image)
     cv.waitKey(0)
     av_pieces = [
         LargeTriangle(32),
@@ -18,7 +18,7 @@ if __name__ == "__main__":
         SmallTriangle(224),
     ]
 
-    root_state = State(av_pieces, ai_tangram.image, ai_tangram.corners)
+    root_state = State(av_pieces, image.image, image.corners)
     result = search(root_state)
     cv.imshow("Tangram", result.current_state.image)
     cv.waitKey(0)

@@ -202,9 +202,9 @@ class Parallelogram(Piece):
         self.is_flipped = False
 
     def flip(self) -> None:
-        temp_point = self.points[0]
-        self.points[0] = self.points[1]
-        self.points[1] = temp_point
-        temp_point = self.points[2]
-        self.points[2] = self.points[3]
-        self.points[3] = temp_point
+        """
+        Only works if rotation is 0
+        """
+        for point in self.points:
+            point.x *= -1
+        self.is_flipped = True
