@@ -17,6 +17,15 @@ class Point:
         self.x = round(x)
         self.y = round(y)
 
+    def close_to(self, other, distance=0.1) -> bool:
+        """
+        Checks if the current point is close to another point
+        :param other: the other point
+        :param distance: the distance to check
+        :return: True if the current point is close to the other one, False otherwise
+        """
+        return np.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2) < distance
+
     def __eq__(self, other) -> bool:
         return self.x == other.x and self.y == other.y
 
@@ -95,10 +104,13 @@ class Vector(Point):
 
 
 class Edge:
-    def __init__(self, start_point: Point, direction : Vector):
+    def __init__(self, start_point: Point, end_point : Point):
         self.start_point = start_point
-        self.direction = direction
+        self.end_point = end_point
+        self.direction = Vector(end_point.x - start_point.x, end_point.y - start_point.y)
 
+    def __str__(self):
+        return f"Edge from {self.start_point} with direction {self.direction}"
 
 class Corner(Point):
     def __init__(self, x, y, edges_from_corner : list = None):
