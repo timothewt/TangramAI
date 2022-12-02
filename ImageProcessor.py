@@ -12,14 +12,12 @@ class ImageProcessor:
     def load_image(self, path_to_image: str) -> np.ndarray([], dtype=int):
         """
         loads the image into a 2d np array with 255 as white pixels and 0 as black pixels, resizes it and turns it
-        into black and white
+        into black and white again
         :param path_to_image: path of the image
         :return: a 2d numpy array of the resized b&w image
         """
         image = cv.imread(path_to_image, cv.IMREAD_GRAYSCALE)
-
         self.corners = self.get_corners_coordinates(image.copy())
-
         black_and_white_image = self.image_to_black_and_white(image)
         resized_image = self.resize_image(black_and_white_image)  # resizes the image for the tangram pieces to be the good size
         resized_black_and_white_image = self.image_to_black_and_white(resized_image)  # to b&w to eliminate gray pixels
@@ -71,7 +69,7 @@ class ImageProcessor:
         :return: the np array of the black (0) and white (255) pixels
         """
         b_w_image = image.copy()
-        b_w_image = cv.threshold(b_w_image, 30, 255, cv.THRESH_BINARY)[1]
+        b_w_image = cv.threshold(b_w_image, 250, 255, cv.THRESH_BINARY)[1]
         return b_w_image
 
 
