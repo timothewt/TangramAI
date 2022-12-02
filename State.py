@@ -28,7 +28,7 @@ class State:
                 working_piece.position_in_image = self.corners[self.current_corner_index]
                 candidate_image = self.image.copy()
                 self.draw_shape_on_image(candidate_image, working_piece)
-                if self.accept_new_piece(self.image, candidate_image, working_piece.color):
+                if self.accept_new_piece(self.image, candidate_image, working_piece.area):
                     new_available_pieces = self.available_pieces.copy()
                     new_available_pieces.pop(self.current_working_piece_index)
                     new_corners = self.corners.copy()
@@ -74,29 +74,24 @@ class State:
             points.append([point.x, point.y])
         points = np.array(points, np.int32)
         points = points.reshape((-1, 1, 2))
-        cv.fillPoly(image, [points], piece.color)
+        cv.fillPoly(image, [points], 255)
 
     def accept_new_piece(self, prev_img: np.ndarray([], dtype=int), candidate_img: np.ndarray([], dtype=int),
-                         color: int) -> bool:
+                         piece_area: int) -> bool:
         """
         Says if the placement of the new piece is rejected considering two criteria:
         If the new piece is placed over another piece
         Or if less than 97% of the new piece covers the drawing (black pixels)
         :param prev_img: image before placing the new piece
         :param candidate_img: image with the new piece placed
-        :return: True if the piece is rejected, False otherwise
+        :param piece_area: area (number of pixels) of the piece placed
+        :return: True if the piece is accepted, False otherwise
         """
-        accept_ratio_black_covered = .99  # % of total pixels covered that are black
-        accept_ratio_pieces_covered = .05  # % of total pixels covered that are other pieces
+        accept_ratio_black_covered = .97  # % of total pixels covered that are black
+        covered_black_pixels = (candidate_img == 255).sum() - (prev_img == 255).sum()
+        black_covered_ratio = covered_black_pixels / piece_area
 
-        covered_non_white_pixels = (prev_img < 255).sum() - ((candidate_img < 255).sum() - (candidate_img == color).sum())
-        covered_white_pixels = (prev_img == 255).sum() - (candidate_img == 255).sum()
-        covered_pieces_pixels = ((prev_img < 255).sum() - (prev_img == 0).sum()) - ((candidate_img < 255).sum() - (candidate_img == 0).sum() - (candidate_img == color).sum())
-
-        black_covered_ratio = covered_non_white_pixels / (covered_white_pixels + covered_non_white_pixels)
-        pieces_covered_ratio = covered_pieces_pixels / (covered_non_white_pixels + covered_white_pixels)
-
-        return black_covered_ratio > accept_ratio_black_covered and pieces_covered_ratio < accept_ratio_pieces_covered
+        return black_covered_ratio > accept_ratio_black_covered
 
 
 class Node:
@@ -113,6 +108,7 @@ def search(initial_state) -> Node:  # backtracking
             node = node.previous_node
         else:
             node = Node(current_state=next_state, previous_node=node)
+            show_image(node.current_state.image)
         if node is None:
             print("No possible solution.")
             return None

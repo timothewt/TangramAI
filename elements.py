@@ -1,3 +1,5 @@
+from math import floor
+
 import numpy as np
 import settings
 
@@ -61,16 +63,17 @@ class Piece:
         coordinates of the shape in the image submitted by the user
     pivot_point: Point
         coordinates of the pivot point the shapes refer to in order to rotate
-    color: int
-        color of the piece, just a level of gray for the moment
+    gray_scale: int
+        gray_scale of the piece, just a level of gray for the moment
     """
 
-    def __init__(self, color: int = 0) -> None:
+    def __init__(self, color: (int, int, int) = (0, 0, 0)) -> None:
         self.total_size = settings.TANGRAM_SIDE_LENGTH  # width of the main square in pixels
         self.side_length = settings.TANGRAM_SIDE_LENGTH
         self.points = []
         self.position_in_image = Point()
         self.pivot_point = Point()
+        self.area = 0
         self.rotation = 0
         self.color = color
         self.used = False
@@ -89,6 +92,7 @@ class Piece:
         :param angle: angle of rotation in degrees (clockwise)
         """
         self.rotation += angle
+        self.rotation %= 360
         angle = np.deg2rad(angle)
         for i in range(0, len(self.points)):
             ox, oy = self.pivot_point.x, self.pivot_point.y
@@ -113,7 +117,7 @@ class Square(Piece):
     Square tangram piece
     """
 
-    def __init__(self, color):
+    def __init__(self, color=(0, 0, 0)):
         super().__init__(color)
         self.side_length = (np.sqrt(2) * self.total_size) / 4
         self.points = [
@@ -123,6 +127,7 @@ class Square(Piece):
             Point(0, self.side_length)
         ]
         self.pivot_point = self.points[0]
+        self.area = self.side_length ** 2
         self.name = "Square"
 
 
@@ -131,10 +136,9 @@ class Triangle(Piece):
     Triangle tangram piece
     """
 
-    def __init__(self, color):
+    def __init__(self, color=(0, 0, 0)):
         super().__init__(color)
         self.side_length = 0
-        self.setup_triangle()
 
     def setup_triangle(self) -> None:
         """
@@ -146,6 +150,7 @@ class Triangle(Piece):
             Point(self.side_length, self.side_length),
         ]
         self.pivot_point = self.points[0]
+        self.area = (self.side_length ** 2) // 2
 
 
 class SmallTriangle(Triangle):
@@ -153,7 +158,7 @@ class SmallTriangle(Triangle):
     Small triangle tangram piece
     """
 
-    def __init__(self, color):
+    def __init__(self, color=(0, 0, 0)):
         super().__init__(color)
         self.side_length = (self.total_size * np.sqrt(2)) / 4
         self.setup_triangle()
@@ -165,7 +170,7 @@ class MediumTriangle(Triangle):
     Medium triangle tangram piece
     """
 
-    def __init__(self, color):
+    def __init__(self, color=(0, 0, 0)):
         super().__init__(color)
         self.side_length = self.total_size / 2
         self.setup_triangle()
@@ -177,7 +182,7 @@ class LargeTriangle(Triangle):
     Large triangle tangram piece
     """
 
-    def __init__(self, color):
+    def __init__(self, color=(0, 0, 0)):
         super().__init__(color)
         self.side_length = (self.total_size * np.sqrt(2)) / 2
         self.setup_triangle()
@@ -189,7 +194,7 @@ class Parallelogram(Piece):
     Parallelogram tangram piece
     """
 
-    def __init__(self, color):
+    def __init__(self, color=(0, 0, 0)):
         super().__init__(color)
         self.long_side_length = self.total_size / 2
         self.height = self.total_size / 4
@@ -200,6 +205,7 @@ class Parallelogram(Piece):
             Point(self.long_side_length / 2, self.height)
         ]
         self.pivot_point = self.points[0]
+        self.area = self.long_side_length * self.height
         self.name = "Parallelogram"
         self.is_flipped = False
 
