@@ -1,13 +1,16 @@
 from random import randint
-
 import pygame as pg
-from settings import *
+import os
+from tkinter import messagebox
+from ShapeValidation import ShapeValidation
 from elements import *
+from settings import *
 
 
 class ShapeComposer:
     def __init__(self) -> None:
         self.screen = pg.display.set_mode(MENU_RES)
+        pg.display.set_caption("Tangram - Shape Composer")
         self.pieces = [
             LargeTriangle((8, 189, 100)),
             LargeTriangle((255, 200, 3)),
@@ -17,12 +20,21 @@ class ShapeComposer:
             SmallTriangle((44, 174, 242)),
             SmallTriangle((251, 140, 50)),
         ]
-        pg.display.set_caption("Tangram - Shape Composer")
+        self.randomize_pieces_positions()
         self.current_piece = None
         self.font1 = None
         self.font2 = None
         self.font3 = None
         self.output_file_name = ""
+        self.shape_validation = ShapeValidation()
+
+    def randomize_pieces_positions(self) -> None:
+        for piece in self.pieces:
+            piece.position_in_image = self.random_coordinates(piece.side_length)
+            piece.rotate_shape_around_pivot(PIECE_ROTATION * randint(0, 8))
+
+    def random_coordinates(self, piece_side_length) -> Point:
+        return Point(randint(0, int(MENU_WIDTH - piece_side_length)), randint(0, int(MENU_HEIGHT - piece_side_length)))
 
     def draw_menu(self) -> None:
         self.screen.fill((230, 230, 230))
@@ -73,6 +85,9 @@ class ShapeComposer:
         pg.display.update()
         file_name = str(randint(1000000000000000000000, 9999999999999999999999)) + ".png"
         pg.image.save(self.screen, "user_shapes/" + file_name)
+        self.output_file_name = file_name
+        if self.shape_validation.validate("user_shapes/" + file_name):
+            return True
         return False
 
     def run(self):
@@ -100,10 +115,9 @@ class ShapeComposer:
                         self.current_piece.rotate_shape_around_pivot(PIECE_ROTATION)
                     if event.key == pg.K_f and self.current_piece.name == "Parallelogram":
                         self.current_piece.flip()
-                if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
-                    self.save_shape()
                 if event.type == pg.MOUSEBUTTONDOWN:
                     self.current_piece = None
+
             # Selecting the current piece
             keys = pg.key.get_pressed()
             if keys[pg.K_0]:
@@ -122,6 +136,15 @@ class ShapeComposer:
                 self.current_piece = self.pieces[5]
             elif keys[pg.K_7]:
                 self.current_piece = self.pieces[6]
+
+            elif keys[pg.K_RETURN]:
+                if self.save_shape():
+                    break
+                else:
+                    messagebox.showwarning("Pieces misplacement", "Please do not place pieces on top of each others.")
+                    os.remove("user_shapes/" + self.output_file_name)
+            elif keys[pg.K_TAB]:
+                self.randomize_pieces_positions()
 
             # Moving the piece to the mouse cursor
             if self.current_piece is not None:

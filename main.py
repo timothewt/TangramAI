@@ -1,3 +1,4 @@
+from ShapeValidation import ShapeValidation
 from elements import *
 from State import State, search
 from ImageProcessor import ImageProcessor, show_image
@@ -25,3 +26,4 @@ if __name__ == "__main__":
     """
     s_c = ShapeComposer()
     s_c.run()
+
