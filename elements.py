@@ -3,7 +3,6 @@ from math import floor
 import numpy as np
 import settings
 
-
 class Point:
     """
     Used to represent a Point of a tangram piece, note that the (0, 0) is at the top left and x goes positive downwards
@@ -28,6 +27,39 @@ class Point:
         """
         return f"x:{self.x}, y:{self.y}"
 
+    def __sub__(self, other):
+        """
+        Subtracts a point to the current one, i.e. subtracts its coordinate to it
+        :param other: other point to subtract
+        :return: the new point with the coordinates subtracted
+        """
+        new_pt = Point(0, 0)
+        new_pt.x = self.x - other.x
+        new_pt.y = self.y - other.y
+        return new_pt
+
+    def __mul__(self, other):
+        """
+        Multiplies a point to the current one, i.e. multiplies its coordinate to it
+        :param other: other point to multiply
+        :return: the new point with the coordinates multiplied
+        """
+        new_pt = Point(0, 0)
+        new_pt.x = self.x * other.x
+        new_pt.y = self.y * other.y
+        return new_pt
+
+    def __truediv__(self, other):
+        """
+        Divides a point to the current one, i.e. divides its coordinate to it
+        :param other: other point to divide
+        :return: the new point with the coordinates divided
+        """
+        new_pt = Point(0, 0)
+        new_pt.x = self.x / other.x
+        new_pt.y = self.y / other.y
+        return new_pt
+
     def __repr__(self) -> str:
         return str(self)
 
@@ -43,10 +75,35 @@ class Point:
         return new_pt
 
 
-class Corner(Point):
+class Vector(Point):
     def __init__(self, x, y):
         super().__init__(x, y)
-        self.edge_from_corner = None
+
+
+    def get_magnitude(self):
+        return np.sqrt(self.x ** 2 + self.y ** 2)
+
+    def get_normalized(self):
+        magnitude = self.get_magnitude()
+        return Vector(self.x / magnitude, self.y / magnitude)
+
+    def get_angle_between(self, other):
+        dot_product = self.x * other.x + self.y * other.y
+        magnitude = self.get_magnitude() * other.get_magnitude()
+        return np.degrees(np.acos(dot_product / magnitude))
+
+
+
+class Edge:
+    def __init__(self, start_point: Point, direction : Vector):
+        self.start_point = start_point
+        self.direction = direction
+
+
+class Corner(Point):
+    def __init__(self, x, y, edges_from_corner : list = None):
+        super().__init__(x, y)
+        self.edges_from_corner = edges_from_corner
 
 
 class Piece:
