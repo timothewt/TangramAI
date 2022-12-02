@@ -6,8 +6,11 @@ from ShapeComposer import ShapeComposer
 
 
 if __name__ == "__main__":
-    """
-    image = ImageProcessor('assets/13.png')
+    s_c = ShapeComposer()
+    user_image_file_name = s_c.run()
+    user_image_file_name = '3282301980754824700651.png'  # for debug purposes
+
+    image = ImageProcessor('user_shapes/' + user_image_file_name)
     show_image(image.image)
     av_pieces = [
         LargeTriangle(32),
@@ -23,7 +26,3 @@ if __name__ == "__main__":
     result = search(root_state)
     if result:
         show_image(result.current_state.image)
-    """
-    s_c = ShapeComposer()
-    s_c.run()
-

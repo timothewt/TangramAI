@@ -8,6 +8,19 @@ from settings import *
 
 
 class ShapeComposer:
+    """
+    Menu of the program. Makes the user compose its own tangram shape. It will later be solved by the AI.
+
+    Attributes:
+        screen:             PyGame surface on which we draw the menu and composer
+        pieces:             all the tangram pieces
+        current_piece:      the piece that the user is currently placing
+        font1:              PyGame font for the title
+        font2:              PyGame font for the subtitles
+        font3:              PyGame font for the controls
+        output_file_name:   name of the image file which is the valid tangram shape
+        shape_validation:   shape validation object to validate the shape submitted by the user
+    """
     def __init__(self) -> None:
         self.screen = pg.display.set_mode(MENU_RES)
         pg.display.set_caption("Tangram - Shape Composer")
@@ -29,14 +42,25 @@ class ShapeComposer:
         self.shape_validation = ShapeValidation()
 
     def randomize_pieces_positions(self) -> None:
+        """
+        Randomises the pieces position and rotation
+        """
         for piece in self.pieces:
             piece.position_in_image = self.random_coordinates(piece.side_length)
             piece.rotate_shape_around_pivot(PIECE_ROTATION * randint(0, 8))
 
     def random_coordinates(self, piece_side_length) -> Point:
+        """
+        Gives random coordinates for a piece
+        :param piece_side_length: side length of the piece
+        :return a random point in the window
+        """
         return Point(randint(0, int(MENU_WIDTH - piece_side_length)), randint(0, int(MENU_HEIGHT - piece_side_length)))
 
     def draw_menu(self) -> None:
+        """
+        Draws the main menu of the program presenting the controls
+        """
         self.screen.fill((230, 230, 230))
         title_text = self.font1.render("Tangram AI", True, (255, 255, 255), (0, 0, 0))
         self.font1.set_italic(True)
@@ -58,6 +82,9 @@ class ShapeComposer:
         pg.display.update()
 
     def draw_shape_composer(self) -> None:
+        """
+        Draws the shape composer with some controls, the grid, the pieces and the current piece
+        """
         self.screen.fill((230, 230, 230))
         [pg.draw.circle(self.screen, (0, 0, 0), (i * GRID_CELL_SIZE, j * GRID_CELL_SIZE), 1) for j in range(GRID_H + 1) for i in range(GRID_W + 1)]
         self.draw_pieces()
@@ -70,16 +97,30 @@ class ShapeComposer:
         pg.display.update()
 
     def draw_pieces(self) -> None:
+        """
+        Draws all the pieces of the window
+        """
         for piece in self.pieces:
             points = [(point.x, point.y) for point in piece.get_points_in_image()]
             pg.draw.polygon(self.screen, piece.color, points)
 
     def get_grid_position(self, x: int, y: int) -> (int, int):
+        """
+        Gives the grid equivalent of a position for a piece, in order to have fixed coordinates for the pieces
+        :param x: x position
+        :param y: y position
+        :return: the column and row in the grid
+        """
         col = x // settings.GRID_CELL_SIZE
         row = y // settings.GRID_CELL_SIZE
         return int(col), int(row)
 
     def save_shape(self) -> bool:
+        """
+        Saves the image of the shape if it was validated by the program
+        :return: True if it has been validated, False if it is not valid
+        """
+        return True  # for debug purpose
         self.screen.fill((255, 255, 255))
         self.draw_pieces()
         pg.display.update()
@@ -90,7 +131,11 @@ class ShapeComposer:
             return True
         return False
 
-    def run(self):
+    def run(self) -> str:
+        """
+        Main loop of the user interface. Shows the menu then the composer. Once the shape has been validated, ends the loop.
+        :return the name of the image file with the tangram shape
+        """
         pg.init()
         self.font1 = pg.font.SysFont('verdana', 40, True)
         self.font2 = pg.font.SysFont('verdana', 25, True)
@@ -136,9 +181,10 @@ class ShapeComposer:
                 self.current_piece = self.pieces[5]
             elif keys[pg.K_7]:
                 self.current_piece = self.pieces[6]
-
+            # To save the shape
             elif keys[pg.K_RETURN]:
                 if self.save_shape():
+                    messagebox.showinfo("Shape valid", "The shape has been validated, now the program will solve it.")
                     break
                 else:
                     messagebox.showwarning("Pieces misplacement", "Please do not place pieces on top of each others.")
@@ -153,3 +199,5 @@ class ShapeComposer:
                 self.current_piece.position_in_image = Point(position[0], position[1])
 
             self.draw_shape_composer()
+
+        return self.output_file_name
