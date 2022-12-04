@@ -37,6 +37,52 @@ class ImageProcessor:
         corners = cv.cornerSubPix(image, np.float32(centroids), (5, 5), (-1, -1), criteria)
         return corners
 
+    def get_edges_and_corners(self, image: np.ndarray([], dtype=int)) -> (np.ndarray([], dtype=int)):
+        """
+        Gives the coordinates of the corners and edges of the shape
+        :param image: image from which we want the edges and corners
+        :return: a list of the edges and a list of corners
+        """
+        contours, h = cv.findContours(image, 1, 2)
+        edges = []
+        corners = []
+        for contour in contours:
+            # Get points and edges
+            for i in range(0, len(contour)):
+                point = Point(contour[i][0][0], contour[i][0][1])
+                corners.append(point)
+
+                #Choose the next point
+                if i < len(contour) - 1:
+                    point2 = Point(contour[i + 1][0][0], contour[i + 1][0][1])
+                else:
+                    point2 = Point(contour[0][0][0], contour[0][0][1])
+
+                # Make sure the segment is not a duplicate
+                #TO DO : fix/improve this
+                is_duplicate = False
+                j = 0
+                distance_check = 200
+                while j < len(edges) and not is_duplicate:
+                    curr_edge = edges[j]
+                    if curr_edge.start_point.close_to(point,distance_check) and curr_edge.end_point.close_to(point2,distance_check) :
+                        is_duplicate = True
+                    elif curr_edge.start_point.close_to(point2,distance_check) and curr_edge.end_point.close_to(point,distance_check):
+                        is_duplicate = True
+
+
+                    else:
+                        print("Edge : ", curr_edge.start_point, curr_edge.end_point)
+                        print("Point : ", point, point2)
+                        j += 1
+
+                #if the segment is not a duplicate, add it to the list of edges
+                if not is_duplicate :
+                    edges.append(Edge(point, point2))
+
+
+        return edges, corners
+
     def resize_image(self, image: np.ndarray([], dtype=int)) -> np.ndarray([], dtype=int):
         """
         resizes the image for the area of the drawing to match the area of all the tangram pieces, which is 280*280

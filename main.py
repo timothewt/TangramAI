@@ -9,8 +9,13 @@ if __name__ == "__main__":
     # user_image_file_name = s_c.run()
     user_image_file_name = '3282301980754824700651.png'  # for development purposes
 
-    image = ImageProcessor('user_shapes/' + user_image_file_name)
+    #image = ImageProcessor('user_shapes/' + user_image_file_name)
+    image = ImageProcessor('assets/13.png')
     show_image(image.image)
+
+    edges, corners = image.get_edges_and_corners(image.image)
+    print(len(edges))
+
     available_pieces = [
         LargeTriangle((8, 189, 100)),
         LargeTriangle((255, 200, 3)),
