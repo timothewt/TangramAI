@@ -1,6 +1,8 @@
 from math import floor, sqrt, ceil
 
 import cv2 as cv
+import numpy as np
+
 from elements import *
 
 
@@ -21,7 +23,10 @@ class ImageProcessor:
         black_and_white_image = self.image_to_black_and_white(image)
         resized_image = self.resize_image(black_and_white_image)  # resizes the image for the tangram pieces to be the good size
         resized_black_and_white_image = self.image_to_black_and_white(resized_image)  # to b&w to eliminate gray pixels
-        return resized_black_and_white_image
+        show_image(resized_black_and_white_image)
+        filled_image = self.fill_shape(resized_black_and_white_image)  # in case of small holes between very close pieces
+        show_image(filled_image)
+        return filled_image
 
     def get_corners_coordinates(self, image: np.ndarray([], dtype=int)):
         """
@@ -117,6 +122,23 @@ class ImageProcessor:
         b_w_image = image.copy()
         b_w_image = cv.threshold(b_w_image, 250, 255, cv.THRESH_BINARY)[1]
         return b_w_image
+
+    def fill_shape(self, image: np.ndarray) -> np.ndarray:
+        """
+        Fills the eventual holes between two pieces. It could've happened during the composing because of the grid
+        :param image: black and white image that we fill
+        :return: the image filled
+        """
+        for i in range(len(image) - 3):
+            for j in range(len(image[0]) - 3):
+                if image[i][j] == 0:
+                    if image[i][j + 1] == 255 and image[i][j + 3] == 0:
+                        image[i][j + 1] = 0
+                        image[i][j + 2] = 0
+                    if image[i + 1][j] == 255 and image[i + 3][j] == 0:
+                        image[i + 1][j] = 0
+                        image[i + 2][j] = 0
+        return image
 
 
 def show_image(image):

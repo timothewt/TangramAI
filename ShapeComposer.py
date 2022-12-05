@@ -120,7 +120,7 @@ class ShapeComposer:
         Saves the image of the shape if it was validated by the program
         :return: True if it has been validated, False if it is not valid
         """
-        return True  # for development purpose
+        # return True  # for development purpose
         self.screen.fill((255, 255, 255))
         self.draw_pieces()
         pg.display.update()
