@@ -55,7 +55,8 @@ class ShapeComposer:
         :param piece_side_length: side length of the piece
         :return a random point in the window
         """
-        return Point(randint(0, int(MENU_WIDTH - piece_side_length)), randint(0, int(MENU_HEIGHT - piece_side_length)))
+        grid_x, grid_y = self.get_grid_position(randint(100, int(MENU_WIDTH - piece_side_length)), randint(100, int(MENU_HEIGHT - piece_side_length)))
+        return Point(grid_x * GRID_CELL_SIZE, grid_y * GRID_CELL_SIZE)
 
     def draw_menu(self) -> None:
         """
