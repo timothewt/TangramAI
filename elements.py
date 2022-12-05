@@ -6,16 +6,15 @@ import settings
 class Point:
     """
     Used to represent a Point of a tangram piece, note that the (0, 0) is at the top left and x goes positive downwards
-    ----
-    x: int
-        coordinate in the horizontal axis
-    y: int
-        coordinate in the vertical axis
+
+    Attributes:
+        x:  coordinate in the horizontal axis
+        y:  coordinate in the vertical axis
     """
 
     def __init__(self, x: float = 0.0, y: float = 0.0) -> None:
-        self.x = round(x)
-        self.y = round(y)
+        self.x: int = round(x)
+        self.y: int = round(y)
 
     def close_to(self, other, distance=0.1) -> bool:
         """
@@ -121,33 +120,34 @@ class Corner(Point):
 class Piece:
     """
     Used to represent the tangram pieces
-    ---
-    total_size: int
-        side length of the square containing all the tangram pieces, determines the size of all the pieces
-    side_length: int
-        length of a side of the shape
-    points: Point[]
-        coordinates of the vertexes of the shape
-    position_in_image: Point
-        coordinates of the shape in the image submitted by the user
-    pivot_point: Point
-        coordinates of the pivot point the shapes refer to in order to rotate
-    gray_scale: int
-        gray_scale of the piece, just a level of gray for the moment
+
+    Attributes:
+
+        total_size:         side length of the square containing all the tangram pieces, determines the size of all the pieces
+        side_length:        length of a side of the shape
+        points:             coordinates of the vertexes of the shape
+        position_in_image:  coordinates of the shape in the image submitted by the user
+        pivot_point:        coordinates of the pivot point the shapes refer to in order to rotate
+        area:               area of the piece in pixels
+        rotation:           angle of rotation of the piece in degrees
+        color:              color of the piece, RGB
+        used:               True if the piece has been used on the shape
+        corners_visited:    list of the corners on which the piece has already been placed
+        name:               name of the piece
     """
 
     def __init__(self, color: (int, int, int) = (0, 0, 0)) -> None:
-        self.total_size = settings.TANGRAM_SIDE_LENGTH  # width of the main square in pixels
-        self.side_length = settings.TANGRAM_SIDE_LENGTH
-        self.points = []
-        self.position_in_image = Point()
-        self.pivot_point = Point()
-        self.area = 0
-        self.rotation = 0
-        self.color = color
-        self.used = False
-        self.corners_visited = []
-        self.name = None
+        self.total_size: int = settings.TANGRAM_SIDE_LENGTH  # width of the main square in pixels
+        self.side_length: int = settings.TANGRAM_SIDE_LENGTH
+        self.points: list[Point] = []
+        self.position_in_image: Point = Point()
+        self.pivot_point: Point = Point()
+        self.area: int = 0
+        self.rotation: int = 0
+        self.color: tuple[int] = color
+        self.used: bool = False
+        self.corners_visited: list[Point] = []
+        self.name: str = None
 
     def __str__(self):
         return self.name
@@ -280,7 +280,7 @@ class Parallelogram(Piece):
 
     def flip(self) -> None:
         """
-        Only works if rotation is 0
+        Flips the parallelogram (mirrored shape)
         """
         for point in self.points:
             point.x *= -1
