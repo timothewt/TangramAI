@@ -12,9 +12,9 @@ class Point:
         y:  coordinate in the vertical axis
     """
 
-    def __init__(self, x: float = 0.0, y: float = 0.0) -> None:
-        self.x: int = round(x)
-        self.y: int = round(y)
+    def __init__(self, x: int = 0, y: int = 0) -> None:
+        self.x: int = int(x)
+        self.y: int = int(y)
 
     def close_to(self, other, distance=0.1) -> bool:
         """
