@@ -7,9 +7,12 @@ from elements import *
 
 
 class State:
-    def __init__(self, available_pieces, image, corners, last_piece_placed=None, last_piece_placed_corner=None):
+    def __init__(self, available_pieces, image, corners, used_pieces=None, last_piece_placed=None, last_piece_placed_corner=None):
         self.available_pieces: list[Piece] = available_pieces.copy()
         self.working_pieces: list[Piece] = deepcopy(available_pieces)
+        if used_pieces is None:
+            used_pieces = []
+        self.used_pieces: list[Piece] = used_pieces
         self.current_working_piece_index: int = 0
         self.corners: list[Point] = corners
         self.current_corner_index: int = 0
@@ -20,24 +23,25 @@ class State:
     def get_next_state(self):
         next_state = None
         while next_state is None and self.current_working_piece_index < len(self.working_pieces):
-            if self.working_pieces[0].name == "Large Triangle" and self.current_working_piece_index > 0:  # if the large triangles are not placed we can't go further
-                return None
             working_piece = self.working_pieces[self.current_working_piece_index]
 
             if self.corners[self.current_corner_index] not in working_piece.corners_visited:
                 working_piece.position_in_image = self.corners[self.current_corner_index]
                 candidate_image = self.image.copy()
                 self.draw_shape_on_image(candidate_image, working_piece)
+
                 if self.accept_new_piece(self.image, candidate_image, working_piece.area):
                     new_available_pieces = self.available_pieces.copy()
                     new_available_pieces.pop(self.current_working_piece_index)
                     new_corners = self.corners.copy()
                     new_corners.extend(working_piece.get_points_in_image())
-                    show_image(candidate_image)
+                    new_used_pieces = self.used_pieces.copy()
+                    new_used_pieces.append(deepcopy(working_piece))
                     next_state = State(
                         available_pieces=new_available_pieces,
                         image=candidate_image,
                         corners=new_corners,
+                        used_pieces=self.used_pieces,
                         last_piece_placed=self.available_pieces[self.current_working_piece_index],
                         last_piece_placed_corner=self.corners[self.current_corner_index]
                     )

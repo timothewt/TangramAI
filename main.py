@@ -9,7 +9,7 @@ if __name__ == "__main__":
     # user_image_file_name = s_c.run()
     user_image_file_name = '3282301980754824700651.png'  # for development purposes
 
-    #image = ImageProcessor('user_shapes/' + user_image_file_name)
+    # image = ImageProcessor('user_shapes/' + user_image_file_name)
     image = ImageProcessor('assets/13.png')
     show_image(image.image)
 
