@@ -129,6 +129,15 @@ class Corner(Point):
     def __init__(self, x, y, edges_from_corner : list = None):
         super().__init__(x, y)
         self.edges_from_corner = edges_from_corner
+        self.angle_between_edges = 0
+        self.first_edge = None
+        self.second_edge = None
+
+    def compute_angle_between_edges(self):
+        self.angle_between_edges = self.first_edge.direction.get_angle_with(self.second_edge.direction)
+
+    def __repr__(self):
+        return "Corner: " + str(self.x) + ", " + str(self.y)
 
 
 class Piece:
@@ -201,6 +210,12 @@ class Piece:
         for point in self.corners:
             coordinates_points.append(point + self.position_in_image)
         return coordinates_points
+
+    def compute_edges(self):
+        len_corners = len(self.corners)
+        for i in range(0, len_corners):
+            self.corners[i].first_edge = Edge(self.corners[i], self.corners[i - 1])
+            self.corners[i].second_edge = Edge(self.corners[i], self.corners[(i + 1) % len_corners])
 
 
 class Square(Piece):
