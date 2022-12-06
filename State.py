@@ -29,6 +29,7 @@ class State:
                 working_piece.position_in_image = self.corners[self.current_corner_index]
                 candidate_image = self.image.copy()
                 self.draw_shape_on_image(candidate_image, working_piece)
+                show_image(candidate_image)
 
                 if self.accept_new_piece(self.image, candidate_image, working_piece.area):
                     new_available_pieces = self.available_pieces.copy()
@@ -85,13 +86,13 @@ class State:
         """
         Says if the placement of the new piece is rejected considering two criteria:
         If the new piece is placed over another piece
-        Or if less than 97% of the new piece covers the drawing (black pixels)
+        Or if less than 95% of the new piece covers the drawing (black pixels)
         :param prev_img: image before placing the new piece
         :param candidate_img: image with the new piece placed
         :param piece_area: area (number of pixels) of the piece placed
         :return: True if the piece is accepted, False otherwise
         """
-        accept_ratio_black_covered = .97  # % of total pixels covered that are black
+        accept_ratio_black_covered = .95  # % of total pixels covered that are black
         covered_black_pixels = (candidate_img == 255).sum() - (prev_img == 255).sum()
         black_covered_ratio = covered_black_pixels / piece_area
 
@@ -103,11 +104,13 @@ class Node:
         self.current_state = current_state
         self.previous_node = previous_node
 
+def approx_eq(a, b):
+    return b * .97 < a < b * 1.03
 
 def search(initial_state) -> Node:  # backtracking
     node = Node(initial_state)
     while node.current_state is not None:
-        next_state = node.current_state.get_next_state()
+        next_state = node.current_state.get_next_state_old()
         if next_state is None:
             node = node.previous_node
         else:

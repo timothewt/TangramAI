@@ -5,9 +5,11 @@ from elements import *
 
 
 class ImageProcessor:
-    def __init__(self, path_to_image: str) -> None:
+    def __init__(self, path_to_image: str = None) -> None:
         self.corners = []
-        self.image = self.load_image(path_to_image)  # image of the shape we want to reproduce with the tangram pieces
+        self.image = None
+        if path_to_image is not None:
+            self.image = self.load_image(path_to_image)  # image of the shape we want to reproduce with the tangram pieces
 
     def load_image(self, path_to_image: str) -> np.ndarray([], dtype=int):
         """
@@ -17,23 +19,18 @@ class ImageProcessor:
         :return: a 2d numpy array of the resized b&w image
         """
         image = cv.imread(path_to_image, cv.IMREAD_GRAYSCALE)
-        self.corners = self.get_corners_coordinates(image.copy())
+
         black_and_white_image = self.image_to_black_and_white(image)
         resized_image = self.resize_image(black_and_white_image)  # resizes the image for the tangram pieces to be the good size
         resized_black_and_white_image = self.image_to_black_and_white(resized_image)  # to b&w to eliminate gray pixels
-        show_image(resized_black_and_white_image)
         filled_image = self.fill_shape(resized_black_and_white_image)  # in case of small holes between very close pieces
-        show_image(filled_image)
+        self.corners = self.get_corners(filled_image.copy())
+        self.draw_corners(filled_image)
         return filled_image
 
-    def get_corners_coordinates(self, image: np.ndarray([], dtype=int)):
-        dst = cv.cornerHarris(image, 5, 3, 0.04)
-        ret, dst = cv.threshold(dst, 0.1 * dst.max(), 255, 0)
-        dst = np.uint8(dst)
-        ret, labels, stats, centroids = cv.connectedComponentsWithStats(dst)
-        criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 100, 0.001)
-        corners = cv.cornerSubPix(image, np.float32(centroids), (5, 5), (-1, -1), criteria)
-        return corners
+    def draw_corners(self, image):
+        for corner in self.corners:
+            cv.circle(image, (corner.x, corner.y),3,128, -1)
 
     def get_corners(self, image: np.ndarray) -> list[Corner]:
         """
@@ -43,44 +40,43 @@ class ImageProcessor:
         """
         contours = cv.findContours(image, 1, 2)[0]
         corners = []
-        for i in range(0, len(contours)):
-            corner = Corner(contours[i][0][0], contours[i][0][1])
-            if len(corners) == 0:
-                corners.append(corner)
-                # Add edges
-                if i < len(contours) - 1:
-                    index = i + 1
-                else:
-                    index = 0
-                point2 = Point(contours[index][0][0], contours[index][0][1])
-                corner.second_edge = Edge(corner, point2)
+        for contour in contours[:-1]:  # last contour is the contour of the image
+            if cv.contourArea(contour) < MIN_SUB_PUZZLE_AREA:
+                continue
+            sub_puzzle_corners = []
+            length_contour = len(contour)
+            # Processes first corner
+            corner = Corner(contour[0][0][0], contour[0][0][1])
+            sub_puzzle_corners.append(corner)
+            # Adds edges
+            point2 = Point(contour[1][0][0], contour[1][0][1])
+            corner.second_edge = Edge(corner, point2)
 
-            elif len(corners) > 0 and not corner.close_to(corners[-1], MIN_DIST_BETWEEN_TWO_CORNERS):
-                # Add corner
-                corners.append(corner)
-                # Add edges
-                if i < len(contours) - 1:
-                    index = i + 1
-                else:
-                    index = 0
-                point2 = Point(contours[index][0][0], contours[index][0][1])
-                corner.first_edge = Edge(corner, corners[-1])
-                corner.second_edge = Edge(corner, point2)
-            else:
-                # Update last corner
-                if i < len(contours) - 1:
-                    index = i + 1
-                else:
-                    index = 0
-                point2 = Point(contours[index][0][0], contours[index][0][1])
-                # Calculate new corner position
-                corners[-1] = Corner(int((corners[-1].x + corner.x) / 2), int((corners[-1].y + corner.y) / 2))
+            for i in range(1, length_contour):
+                corner = Corner(contour[i][0][0], contour[i][0][1])
+                next_corner_index = (i + 1) % length_contour
 
-                corners[-1].second_edge = Edge(corners[-1], point2)
-                if len(corners) > 1:
-                    corners[-2].second_edge = Edge(corners[-2], corners[-1])
+                if not corner.close_to(sub_puzzle_corners[-1], MIN_DIST_BETWEEN_TWO_CORNERS):
+                    # Add corner
+                    sub_puzzle_corners.append(corner)
+                    # Add edges
 
-        corners[0].first_edge = Edge(corners[0], corners[-1])
+                    point2 = Point(contour[next_corner_index][0][0], contour[next_corner_index][0][1])
+                    corner.first_edge = Edge(corner, sub_puzzle_corners[-1])
+                    corner.second_edge = Edge(corner, point2)
+                else:
+                    point2 = Point(contour[next_corner_index][0][0], contour[next_corner_index][0][1])
+                    # Calculate new corner position
+                    sub_puzzle_corners[-1] = Corner(int((sub_puzzle_corners[-1].x + corner.x) / 2), int((sub_puzzle_corners[-1].y + corner.y) / 2))
+
+                    sub_puzzle_corners[-1].second_edge = Edge(sub_puzzle_corners[-1], point2)
+                    if len(sub_puzzle_corners) > 1:
+                        sub_puzzle_corners[-2].second_edge = Edge(sub_puzzle_corners[-2], sub_puzzle_corners[-1])
+                if corner.first_edge is not None and corner.second_edge is not None :
+                    corner.compute_angle_between_edges()
+            sub_puzzle_corners[0].first_edge = Edge(sub_puzzle_corners[0], sub_puzzle_corners[-1])
+            sub_puzzle_corners[0].compute_angle_between_edges()
+            corners.extend(sub_puzzle_corners)
         return corners
 
     def resize_image(self, image: np.ndarray([], dtype=int)) -> np.ndarray([], dtype=int):

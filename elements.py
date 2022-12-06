@@ -172,18 +172,20 @@ class Piece:
         self.corners_visited: list[Corner] = []
         self.name: str = None
         self.max_corner_swap = 0
-        self.corner_swapped = 0
+        self.number_of_corner_swap = 0
 
     def __str__(self):
         return self.name
 
     def __repr__(self):
         return str(self)
+
     def next_corner(self) -> None:
         self.corners.append(self.corners.pop(0))
         for i in range(len(self.corners) - 1, -1, -1):
             self.corners[i] -= self.corners[0]
         self.pivot_point = self.corners[0]
+        self.number_of_corner_swap += 1
 
     def rotate_shape_around_pivot(self, angle: float) -> None:
         """
@@ -191,7 +193,6 @@ class Piece:
         :param angle: angle_between_edges of rotation in degrees (clockwise)
         """
         self.rotation += angle
-        self.rotation %= 360
         angle = np.deg2rad(angle)
         for i in range(0, len(self.corners)):
             ox, oy = self.pivot_point.x, self.pivot_point.y
