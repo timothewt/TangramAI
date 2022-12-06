@@ -159,6 +159,8 @@ class ShapeComposer:
                 if event.type == pg.KEYDOWN and self.current_piece is not None:
                     if event.key == pg.K_r:
                         self.current_piece.rotate_shape_around_pivot(PIECE_ROTATION)
+                    if event.key == pg.K_n:
+                        self.current_piece.next_corner()
                     if event.key == pg.K_f and self.current_piece.name == "Parallelogram":
                         self.current_piece.flip()
                 if event.type == pg.MOUSEBUTTONDOWN:

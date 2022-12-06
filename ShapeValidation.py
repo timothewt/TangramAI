@@ -13,7 +13,7 @@ class ShapeValidation:
         :return: True if it is valid, False otherwise
         """
         image = cv.imread(path_to_image, cv.IMREAD_GRAYSCALE)
-        return (image != 255).sum() >= TANGRAM_AREA * .99
+        return (image != 255).sum() >= TANGRAM_AREA * .98
 
 
 if __name__ == "__main__":

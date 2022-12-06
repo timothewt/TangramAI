@@ -1,8 +1,6 @@
 from math import floor, sqrt, ceil
-
 import cv2 as cv
-import numpy as np
-
+from settings import *
 from elements import *
 
 
@@ -29,11 +27,6 @@ class ImageProcessor:
         return filled_image
 
     def get_corners_coordinates(self, image: np.ndarray([], dtype=int)):
-        """
-        Gives the coordinates of all the corners of the shape to draw using the Harris corner detection algorithm
-        :param image: image from which we want the corners
-        :return: a list of the corners
-        """
         dst = cv.cornerHarris(image, 5, 3, 0.04)
         ret, dst = cv.threshold(dst, 0.1 * dst.max(), 255, 0)
         dst = np.uint8(dst)
@@ -42,51 +35,53 @@ class ImageProcessor:
         corners = cv.cornerSubPix(image, np.float32(centroids), (5, 5), (-1, -1), criteria)
         return corners
 
-    def get_edges_and_corners(self, image: np.ndarray([], dtype=int)) -> (np.ndarray([], dtype=int)):
+    def get_corners(self, image: np.ndarray) -> list[Corner]:
         """
-        Gives the coordinates of the corners and edges of the shape
-        :param image: image from which we want the edges and corners
-        :return: a list of the edges and a list of corners
+        Gives the coordinates of all the corners of the shape, and all its edges
+        :param image: image from which we want the corners and edges
+        :return: a list of the corners, which also has the edges in it
         """
-        contours, h = cv.findContours(image, 1, 2)
-        edges = []
+        contours = cv.findContours(image, 1, 2)[0]
         corners = []
-        for contour in contours:
-            # Get points and edges
-            for i in range(0, len(contour)):
-                point = Point(contour[i][0][0], contour[i][0][1])
-                corners.append(point)
-
-                #Choose the next point
-                if i < len(contour) - 1:
-                    point2 = Point(contour[i + 1][0][0], contour[i + 1][0][1])
+        for i in range(0, len(contours)):
+            corner = Corner(contours[i][0][0], contours[i][0][1])
+            if len(corners) == 0:
+                corners.append(corner)
+                # Add edges
+                if i < len(contours) - 1:
+                    index = i + 1
                 else:
-                    point2 = Point(contour[0][0][0], contour[0][0][1])
+                    index = 0
+                point2 = Point(contours[index][0][0], contours[index][0][1])
+                corner.second_edge = Edge(corner, point2)
 
-                # Make sure the segment is not a duplicate
-                #TO DO : fix/improve this
-                is_duplicate = False
-                j = 0
-                distance_check = 200
-                while j < len(edges) and not is_duplicate:
-                    curr_edge = edges[j]
-                    if curr_edge.start_point.close_to(point,distance_check) and curr_edge.end_point.close_to(point2,distance_check) :
-                        is_duplicate = True
-                    elif curr_edge.start_point.close_to(point2,distance_check) and curr_edge.end_point.close_to(point,distance_check):
-                        is_duplicate = True
+            elif len(corners) > 0 and not corner.close_to(corners[-1], MIN_DIST_BETWEEN_TWO_CORNERS):
+                # Add corner
+                corners.append(corner)
+                # Add edges
+                if i < len(contours) - 1:
+                    index = i + 1
+                else:
+                    index = 0
+                point2 = Point(contours[index][0][0], contours[index][0][1])
+                corner.first_edge = Edge(corner, corners[-1])
+                corner.second_edge = Edge(corner, point2)
+            else:
+                # Update last corner
+                if i < len(contours) - 1:
+                    index = i + 1
+                else:
+                    index = 0
+                point2 = Point(contours[index][0][0], contours[index][0][1])
+                # Calculate new corner position
+                corners[-1] = Corner(int((corners[-1].x + corner.x) / 2), int((corners[-1].y + corner.y) / 2))
 
+                corners[-1].second_edge = Edge(corners[-1], point2)
+                if len(corners) > 1:
+                    corners[-2].second_edge = Edge(corners[-2], corners[-1])
 
-                    else:
-                        print("Edge : ", curr_edge.start_point, curr_edge.end_point)
-                        print("Point : ", point, point2)
-                        j += 1
-
-                #if the segment is not a duplicate, add it to the list of edges
-                if not is_duplicate :
-                    edges.append(Edge(point, point2))
-
-
-        return edges, corners
+        corners[0].first_edge = Edge(corners[0], corners[-1])
+        return corners
 
     def resize_image(self, image: np.ndarray([], dtype=int)) -> np.ndarray([], dtype=int):
         """

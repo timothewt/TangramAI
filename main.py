@@ -5,8 +5,8 @@ from ShapeComposer import ShapeComposer
 
 
 if __name__ == "__main__":
-    # s_c = ShapeComposer()
-    # user_image_file_name = s_c.run()
+    s_c = ShapeComposer()
+    user_image_file_name = s_c.run()
     user_image_file_name = '3282301980754824700651.png'  # for development purposes
 
     image = ImageProcessor('assets/13.png')

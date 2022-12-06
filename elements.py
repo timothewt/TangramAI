@@ -1,5 +1,4 @@
-from math import floor
-
+from __future__ import annotations
 import numpy as np
 import settings
 
@@ -12,11 +11,11 @@ class Point:
         y:  coordinate in the vertical axis
     """
 
-    def __init__(self, x: int = 0, y: int = 0) -> None:
-        self.x: int = int(x)
-        self.y: int = int(y)
+    def __init__(self, x: float = 0.0, y: float = 0.0) -> None:
+        self.x: float = x
+        self.y: float = y
 
-    def close_to(self, other, distance=0.1) -> bool:
+    def close_to(self, other: Point, distance=0.1) -> bool:
         """
         Checks if the current point is close to another point
         :param other: the other point
@@ -84,18 +83,33 @@ class Point:
 
 
 class Vector(Point):
+    """
+    Vector class used for the direction of the edges
+    """
     def __init__(self, x, y):
         super().__init__(x, y)
 
-
-    def get_magnitude(self):
+    def get_magnitude(self) -> float:
+        """
+        Gives the magnitude of the vector (its length)
+        :return: the magnitude in px
+        """
         return np.sqrt(self.x ** 2 + self.y ** 2)
 
-    def get_normalized(self):
+    def get_normalized(self) -> Vector:
+        """
+        Gives the normalized vector
+        :return: the normalized vector
+        """
         magnitude = self.get_magnitude()
         return Vector(self.x / magnitude, self.y / magnitude)
 
-    def get_angle_between(self, other):
+    def get_angle_with(self, other) -> float:
+        """
+        Gives the angle_between_edges between this vector and another one
+        :param other: other vector 
+        :return: the angle_between_edges between the two vectors in degrees
+        """
         dot_product = self.x * other.x + self.y * other.y
         magnitude = self.get_magnitude() * other.get_magnitude()
         return np.degrees(np.acos(dot_product / magnitude))
@@ -125,11 +139,11 @@ class Piece:
 
         total_size:         side length of the square containing all the tangram pieces, determines the size of all the pieces
         side_length:        length of a side of the shape
-        points:             coordinates of the vertexes of the shape
+        corners:             coordinates of the vertexes of the shape
         position_in_image:  coordinates of the shape in the image submitted by the user
         pivot_point:        coordinates of the pivot point the shapes refer to in order to rotate
         area:               area of the piece in pixels
-        rotation:           angle of rotation of the piece in degrees
+        rotation:           angle_between_edges of rotation of the piece in degrees
         color:              color of the piece, RGB
         used:               True if the piece has been used on the shape
         corners_visited:    list of the corners on which the piece has already been placed
@@ -139,44 +153,52 @@ class Piece:
     def __init__(self, color: (int, int, int) = (0, 0, 0)) -> None:
         self.total_size: int = settings.TANGRAM_SIDE_LENGTH  # width of the main square in pixels
         self.side_length: int = settings.TANGRAM_SIDE_LENGTH
-        self.points: list[Point] = []
+        self.corners: list[Corner] = []
         self.position_in_image: Point = Point()
         self.pivot_point: Point = Point()
         self.area: int = 0
         self.rotation: int = 0
         self.color: tuple[int] = color
         self.used: bool = False
-        self.corners_visited: list[Point] = []
+        self.corners_visited: list[Corner] = []
         self.name: str = None
+        self.max_corner_swap = 0
+        self.corner_swapped = 0
 
     def __str__(self):
         return self.name
 
     def __repr__(self):
         return str(self)
+    def next_corner(self) -> None:
+        self.corners.append(self.corners.pop(0))
+        for i in range(len(self.corners) - 1, -1, -1):
+            self.corners[i] -= self.corners[0]
+        self.pivot_point = self.corners[0]
 
     def rotate_shape_around_pivot(self, angle: float) -> None:
         """
-        changes the coordinates of the shape to the new coordinates after a rotation of (angle)°
-        :param angle: angle of rotation in degrees (clockwise)
+        changes the coordinates of the shape to the new coordinates after a rotation of (angle_between_edges)°
+        :param angle: angle_between_edges of rotation in degrees (clockwise)
         """
         self.rotation += angle
         self.rotation %= 360
         angle = np.deg2rad(angle)
-        for i in range(0, len(self.points)):
+        for i in range(0, len(self.corners)):
             ox, oy = self.pivot_point.x, self.pivot_point.y
-            px, py = self.points[i].x, self.points[i].y
+            px, py = self.corners[i].x, self.corners[i].y
             qx = ox + np.cos(angle) * (px - ox) - np.sin(angle) * (py - oy)
             qy = oy + np.sin(angle) * (px - ox) + np.cos(angle) * (py - oy)
-            self.points[i] = Point(qx, qy)
+            self.corners[i] = Corner(qx, qy)
+        self.compute_edges()
 
     def get_points_in_image(self):
         """
         gives the coordinates of the shape in the image reference frame
-        :return: the coordinates in a list of points
+        :return: the coordinates in a list of corners
         """
         coordinates_points = []
-        for point in self.points:
+        for point in self.corners:
             coordinates_points.append(point + self.position_in_image)
         return coordinates_points
 
@@ -189,13 +211,15 @@ class Square(Piece):
     def __init__(self, color=(0, 0, 0)):
         super().__init__(color)
         self.side_length = (np.sqrt(2) * self.total_size) / 4
-        self.points = [
-            Point(0, 0),
-            Point(self.side_length, 0),
-            Point(self.side_length, self.side_length),
-            Point(0, self.side_length)
+        self.corners = [
+            Corner(0, 0),
+            Corner(self.side_length, 0),
+            Corner(self.side_length, self.side_length),
+            Corner(0, self.side_length)
         ]
-        self.pivot_point = self.points[0]
+        self.max_corner_swap = 4
+        self.pivot_point = self.corners[0]
+        self.compute_edges()
         self.area = self.side_length ** 2
         self.name = "Square"
 
@@ -208,17 +232,19 @@ class Triangle(Piece):
     def __init__(self, color=(0, 0, 0)):
         super().__init__(color)
         self.side_length = 0
+        self.max_corner_swap = 3
 
     def setup_triangle(self) -> None:
         """
         Sets up the triangle attributes
         """
-        self.points = [
-            Point(0, 0),
-            Point(self.side_length, 0),
-            Point(self.side_length, self.side_length),
+        self.corners = [
+            Corner(0, 0),
+            Corner(self.side_length, 0),
+            Corner(self.side_length, self.side_length),
         ]
-        self.pivot_point = self.points[0]
+        self.pivot_point = self.corners[0]
+        self.compute_edges()
         self.area = (self.side_length ** 2) // 2
 
 
@@ -267,13 +293,15 @@ class Parallelogram(Piece):
         super().__init__(color)
         self.long_side_length = self.total_size / 2
         self.height = self.total_size / 4
-        self.points = [
-            Point(0, 0),
-            Point(self.long_side_length, 0),
-            Point(3 * self.long_side_length / 2, self.height),
-            Point(self.long_side_length / 2, self.height)
+        self.corners = [
+            Corner(0, 0),
+            Corner(self.long_side_length, 0),
+            Corner(3 * self.long_side_length / 2, self.height),
+            Corner(self.long_side_length / 2, self.height)
         ]
-        self.pivot_point = self.points[0]
+        self.max_corner_swap = 4
+        self.pivot_point = self.corners[0]
+        self.compute_edges()
         self.area = self.long_side_length * self.height
         self.name = "Parallelogram"
         self.is_flipped = False
@@ -282,6 +310,6 @@ class Parallelogram(Piece):
         """
         Flips the parallelogram (mirrored shape)
         """
-        for point in self.points:
-            point.x *= -1
+        for corner in self.corners:
+            corner.x *= -1
         self.is_flipped = True
