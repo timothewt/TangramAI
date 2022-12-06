@@ -112,7 +112,7 @@ class Vector(Point):
         """
         dot_product = self.x * other.x + self.y * other.y
         magnitude = self.get_magnitude() * other.get_magnitude()
-        return np.degrees(np.acos(dot_product / magnitude))
+        return np.degrees(np.arccos(dot_product / magnitude))
 
 
 

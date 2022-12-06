@@ -21,6 +21,9 @@ class State:
         self.last_piece_placed_corner: Point = last_piece_placed_corner
 
     def get_next_state(self):
+        pass
+
+    def get_next_state_old(self):
         next_state = None
         while next_state is None and self.current_working_piece_index < len(self.working_pieces):
             working_piece = self.working_pieces[self.current_working_piece_index]
