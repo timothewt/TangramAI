@@ -2,12 +2,13 @@ from __future__ import annotations
 import cv2 as cv
 from copy import deepcopy
 
-from ImageProcessor import show_image
+from ImageProcessor import ImageProcessor, show_image
 from elements import *
 
 
 class State:
-    def __init__(self, available_pieces, image, corners, used_pieces=None, last_piece_placed=None, last_piece_placed_corner=None):
+    def __init__(self, available_pieces, image, corners, used_pieces=None, last_piece_placed=None,
+                 last_piece_placed_corner=None):
         self.available_pieces: list[Piece] = available_pieces.copy()
         self.working_pieces: list[Piece] = deepcopy(available_pieces)
         if used_pieces is None:
@@ -16,9 +17,10 @@ class State:
         self.current_working_piece_index: int = 0
         self.corners: list[Corner] = corners
         self.current_corner_index: int = 0
-        self.image: np.ndarray(int) = image.copy()
+        self.image: np.ndarray = image.copy()
         self.last_piece_placed: Piece = last_piece_placed
         self.last_piece_placed_corner: Point = last_piece_placed_corner
+        self.image_processor = ImageProcessor()
 
     def get_next_state(self):
         next_state = None
@@ -131,8 +133,10 @@ class Node:
         self.current_state = current_state
         self.previous_node = previous_node
 
+
 def approx_eq(a, b):
-    return b * .97 < a < b * 1.03
+    return b * .98 < a < b * 1.02
+
 
 def search(initial_state) -> Node:  # backtracking
     node = Node(initial_state)

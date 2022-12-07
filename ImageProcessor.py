@@ -25,7 +25,6 @@ class ImageProcessor:
         resized_black_and_white_image = self.image_to_black_and_white(resized_image)  # to b&w to eliminate gray pixels
         filled_image = self.fill_shape(resized_black_and_white_image)  # in case of small holes between very close pieces
         self.corners = self.get_corners(filled_image.copy())
-        self.draw_corners(filled_image)
         return filled_image
 
     def draw_corners(self, image):
@@ -41,7 +40,7 @@ class ImageProcessor:
         contours = cv.findContours(image, 1, 2)[0]
         corners = []
         for contour in contours[:-1]:  # last contour is the contour of the image
-            if cv.contourArea(contour) < MIN_SUB_PUZZLE_AREA:
+            if cv.contourArea(contour) < MIN_SUB_PUZZLE_AREA:  # if the sub puzzle is too small, skips it
                 continue
 
             sub_puzzle_corners = [Corner(contour[0][0][0], contour[0][0][1])]

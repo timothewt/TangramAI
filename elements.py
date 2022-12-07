@@ -1,6 +1,7 @@
 from __future__ import annotations
 import numpy as np
 import settings
+import math
 
 class Point:
     """
@@ -111,9 +112,9 @@ class Vector(Point):
         :return: the angle_between_edges between the two vectors in degrees
         """
         dot_product = self.x * other.x + self.y * other.y
-        magnitude = self.get_magnitude() * other.get_magnitude()
-        return np.degrees(np.arccos(dot_product / magnitude))
-
+        magnitude = self.get_magnitude() * other.get_magnitude() 
+        res = math.degrees(math.acos(dot_product / magnitude))
+        return res
 
 
 class Edge:
@@ -126,6 +127,7 @@ class Edge:
 
     def __str__(self):
         return f"Edge from {self.start_point} with direction {self.direction}"
+
 
 class Corner(Point):
     def __init__(self, x, y, edges_from_corner : list = None):
@@ -140,6 +142,17 @@ class Corner(Point):
 
     def __repr__(self):
         return "Corner: " + str(self.x) + ", " + str(self.y)
+
+    def __sub__(self, other):
+        """
+        Subtracts a point to the current one, i.e. subtracts its coordinate to it
+        :param other: other point to subtract
+        :return: the new point with the coordinates subtracted
+        """
+        new_corner = self
+        new_corner.x = self.x - other.x
+        new_corner.y = self.y - other.y
+        return new_corner
 
 
 class Piece:
@@ -172,7 +185,7 @@ class Piece:
         self.color: tuple[int] = color
         self.used: bool = False
         self.corners_visited: list[Corner] = []
-        self.name: str = None
+        self.name: str = ""
         self.max_corner_swap = 0
         self.number_of_corner_swap = 0
 
@@ -219,6 +232,9 @@ class Piece:
         for i in range(0, len_corners):
             self.corners[i].first_edge = Edge(self.corners[i], self.corners[i - 1])
             self.corners[i].second_edge = Edge(self.corners[i], self.corners[(i + 1) % len_corners])
+
+    def reset_rotation(self):
+        self.rotate_shape_around_pivot(-self.rotation)
 
 
 class Square(Piece):
@@ -330,4 +346,4 @@ class Parallelogram(Piece):
         """
         for corner in self.corners:
             corner.x *= -1
-        self.is_flipped = True
+        self.is_flipped = not self.is_flipped
