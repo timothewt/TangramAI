@@ -112,7 +112,7 @@ class Vector(Point):
         :return: the angle_between_edges between the two vectors in degrees
         """
         dot_product = self.x * other.x + self.y * other.y
-        magnitude = self.get_magnitude() * other.get_magnitude() 
+        magnitude = self.get_magnitude() * other.get_magnitude()
         res = math.degrees(math.acos(dot_product / magnitude))
         return res
 
