@@ -107,7 +107,7 @@ class State:
             points.append([point.x, point.y])
         points = np.array(points, np.int32)
         points = points.reshape((-1, 1, 2))
-        cv.fillPoly(image, [points], 255)
+        cv.fillPoly(image, [points], 230)
 
     def accept_new_piece(self, prev_img: np.ndarray([], dtype=int), candidate_img: np.ndarray([], dtype=int),
                          piece_area: int) -> bool:

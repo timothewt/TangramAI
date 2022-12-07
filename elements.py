@@ -123,7 +123,6 @@ class Edge:
         self.start_point = start_point
         self.end_point = end_point
         self.direction = Vector(end_point.x - start_point.x, end_point.y - start_point.y)
-        # print(self.direction)
 
     def __str__(self):
         return f"Edge from {self.start_point} with direction {self.direction}"
@@ -347,3 +346,4 @@ class Parallelogram(Piece):
         for corner in self.corners:
             corner.x *= -1
         self.is_flipped = not self.is_flipped
+        self.compute_edges()
