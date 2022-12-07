@@ -25,8 +25,6 @@ class ImageProcessor:
         resized_black_and_white_image = self.image_to_black_and_white(resized_image)  # to b&w to eliminate gray pixels
         filled_image = self.fill_shape(resized_black_and_white_image)  # in case of small holes between very close pieces
         self.corners = self.get_corners(filled_image.copy())
-        self.draw_corners(filled_image)
-        show_image(filled_image)
         return filled_image
 
     def draw_corners(self, image):
@@ -71,7 +69,6 @@ class ImageProcessor:
                 previous_corner = sub_puzzle_corners[i - 1]
                 corner = sub_puzzle_corners[i]
                 next_corner = sub_puzzle_corners[(i + 1) % corners_number]
-                print(previous_corner, corner, next_corner)
 
                 corner.first_edge = Edge(corner, previous_corner)
                 corner.second_edge = Edge(corner, next_corner)

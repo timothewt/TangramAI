@@ -26,16 +26,13 @@ class State:
         next_state = None
         while next_state is None and self.current_working_piece_index < len(self.working_pieces):
             working_piece = self.working_pieces[self.current_working_piece_index]
-            print("Trying", working_piece.name, "at corner n°", self.current_corner_index)
+            print("--- New state try ---\nTrying", working_piece.name, "at corner n°", self.current_corner_index)
             # Check for every corner of the piece if the angle match a shadow's corner:
             piece_corner = working_piece.corners[0]
             shape_corner = self.corners[self.current_corner_index]
-            piece_corner.compute_angle_between_edges()
-            print("Angle piece :" + str(piece_corner.angle_between_edges))
-            print("Angle shadow " + str(shape_corner.angle_between_edges))
+
             if approx_eq(self.corners[self.current_corner_index].angle_between_edges, piece_corner.angle_between_edges):
                 print("Angle match")
-
                 # First Edge
                 angle_to_rotate = shape_corner.first_edge.direction.get_angle_with(piece_corner.first_edge.direction)
                 # Rotate the piece to align to edges
@@ -49,6 +46,7 @@ class State:
                 angle_to_rotate = shape_corner.second_edge.direction.get_angle_with(piece_corner.first_edge.direction)
                 # Rotate the piece to align to edges
                 candidate_image = self.try_piece_in_image(angle_to_rotate, shape_corner, working_piece)
+
                 if self.accept_new_piece(self.image, candidate_image, working_piece.area):
                     print("Placed", working_piece.name)
                     next_state = self.create_next_state(candidate_image, working_piece)
@@ -72,12 +70,27 @@ class State:
         return next_state
 
     def try_piece_in_image(self, angle_to_rotate, shape_corner, working_piece):
+        print(f"{angle_to_rotate=}")
         working_piece.position_in_image = shape_corner
         working_piece.rotate_shape_around_pivot(angle_to_rotate)
         candidate_image = self.image.copy()
+        temp = candidate_image.copy()
+        self.draw_piece_in_image(temp, working_piece)
+        temp = cv.line(temp, (shape_corner.first_edge.start_point.x, shape_corner.first_edge.start_point.y),
+                        (int(shape_corner.first_edge.direction.get_normalized().x * 20 + shape_corner.first_edge.start_point.x) , int(shape_corner.first_edge.direction.get_normalized().y * 20 + shape_corner.first_edge.start_point.y)),
+                        100, 2)
+        temp = cv.putText(temp, "Before rotation " + str(round(angle_to_rotate)), (shape_corner.x + 30, shape_corner.y), cv.FONT_HERSHEY_SIMPLEX,
+                           .5, 128, 2, cv.LINE_AA)
+        show_image(temp)
+        working_piece.rotate_shape_around_pivot(angle_to_rotate)
         self.draw_piece_in_image(candidate_image, working_piece)
-        working_piece.reset_rotation()
+        candidate_image = cv.line(candidate_image, (shape_corner.first_edge.start_point.x, shape_corner.first_edge.start_point.y),
+                        (int(shape_corner.first_edge.direction.get_normalized().x * 20 + shape_corner.first_edge.start_point.x) , int(shape_corner.first_edge.direction.get_normalized().y * 20 + shape_corner.first_edge.start_point.y)),
+                        100, 2)
+        candidate_image = cv.putText(candidate_image, "After rotation " + str(round(angle_to_rotate)), (shape_corner.x + 30, shape_corner.y), cv.FONT_HERSHEY_SIMPLEX,
+                           .5, 128, 2, cv.LINE_AA)
         show_image(candidate_image)
+        working_piece.reset_rotation()
         return candidate_image
 
     def create_next_state(self, candidate_image, working_piece):

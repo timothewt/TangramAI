@@ -169,7 +169,6 @@ class Piece:
         rotation:           angle_between_edges of rotation of the piece in degrees
         color:              color of the piece, RGB
         used:               True if the piece has been used on the shape
-        corners_visited:    list of the corners on which the piece has already been placed
         name:               name of the piece
     """
 
@@ -183,7 +182,6 @@ class Piece:
         self.rotation: int = 0
         self.color: tuple[int] = color
         self.used: bool = False
-        self.corners_visited: list[Corner] = []
         self.name: str = ""
         self.max_corner_swap = 0
         self.number_of_corner_swap = 0
@@ -200,6 +198,7 @@ class Piece:
             self.corners[i] -= self.corners[0]
         self.pivot_point = self.corners[0]
         self.number_of_corner_swap += 1
+        self.compute_edges()
 
     def rotate_shape_around_pivot(self, angle: float) -> None:
         """
@@ -231,6 +230,7 @@ class Piece:
         for i in range(0, len_corners):
             self.corners[i].first_edge = Edge(self.corners[i], self.corners[i - 1])
             self.corners[i].second_edge = Edge(self.corners[i], self.corners[(i + 1) % len_corners])
+            self.corners[i].compute_angle_between_edges()
 
     def reset_rotation(self):
         self.rotate_shape_around_pivot(-self.rotation)
