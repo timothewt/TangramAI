@@ -51,7 +51,7 @@ class ImageProcessor:
                 if not corner.close_to(sub_puzzle_corners[-1], MIN_DIST_BETWEEN_TWO_CORNERS):
                     sub_puzzle_corners.append(corner)
                 else:
-                    # Calculate new corner position
+                    # if too close, changes the last corner to the average of the two
                     sub_puzzle_corners[-1] = Corner(int((sub_puzzle_corners[-1].x + corner.x) / 2),
                                                     int((sub_puzzle_corners[-1].y + corner.y) / 2))
 

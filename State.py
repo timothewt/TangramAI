@@ -46,8 +46,7 @@ class State:
                     next_state = self.create_next_state(candidate_image, working_piece)
                     break
                 # Second edge
-                angle_to_rotate = shape_corner.second_edge.direction.get_angle_with(
-                    piece_corner.first_edge.direction)
+                angle_to_rotate = shape_corner.second_edge.direction.get_angle_with(piece_corner.first_edge.direction)
                 # Rotate the piece to align to edges
                 candidate_image = self.try_piece_in_image(angle_to_rotate, shape_corner, working_piece)
                 if self.accept_new_piece(self.image, candidate_image, working_piece.area):
