@@ -43,39 +43,30 @@ class ImageProcessor:
         for contour in contours[:-1]:  # last contour is the contour of the image
             if cv.contourArea(contour) < MIN_SUB_PUZZLE_AREA:
                 continue
-            sub_puzzle_corners = []
-            length_contour = len(contour)
-            # Processes first corner
-            corner = Corner(contour[0][0][0], contour[0][0][1])
-            sub_puzzle_corners.append(corner)
-            # Adds edges
-            point2 = Point(contour[1][0][0], contour[1][0][1])
-            corner.second_edge = Edge(corner, point2)
 
-            for i in range(1, length_contour):
+            sub_puzzle_corners = [Corner(contour[0][0][0], contour[0][0][1])]
+            contour_length = len(contour)
+
+            for i in range(1, contour_length):  # gets all the corners
                 corner = Corner(contour[i][0][0], contour[i][0][1])
-                next_corner_index = (i + 1) % length_contour
-
                 if not corner.close_to(sub_puzzle_corners[-1], MIN_DIST_BETWEEN_TWO_CORNERS):
-                    # Add corner
                     sub_puzzle_corners.append(corner)
-                    # Add edges
-
-                    point2 = Point(contour[next_corner_index][0][0], contour[next_corner_index][0][1])
-                    corner.first_edge = Edge(corner, sub_puzzle_corners[-1])
-                    corner.second_edge = Edge(corner, point2)
                 else:
-                    point2 = Point(contour[next_corner_index][0][0], contour[next_corner_index][0][1])
                     # Calculate new corner position
-                    sub_puzzle_corners[-1] = Corner(int((sub_puzzle_corners[-1].x + corner.x) / 2), int((sub_puzzle_corners[-1].y + corner.y) / 2))
+                    sub_puzzle_corners[-1] = Corner(int((sub_puzzle_corners[-1].x + corner.x) / 2),
+                                                    int((sub_puzzle_corners[-1].y + corner.y) / 2))
 
-                    sub_puzzle_corners[-1].second_edge = Edge(sub_puzzle_corners[-1], point2)
-                    if len(sub_puzzle_corners) > 1:
-                        sub_puzzle_corners[-2].second_edge = Edge(sub_puzzle_corners[-2], sub_puzzle_corners[-1])
-                if corner.first_edge is not None and corner.second_edge is not None :
-                    corner.compute_angle_between_edges()
-            sub_puzzle_corners[0].first_edge = Edge(sub_puzzle_corners[0], sub_puzzle_corners[-1])
-            sub_puzzle_corners[0].compute_angle_between_edges()
+            corners_number = len(sub_puzzle_corners)
+            for i in range(corners_number):  # link them with edges
+                corner = sub_puzzle_corners[i - 1]
+                previous_corner = sub_puzzle_corners[i]
+                next_corner = sub_puzzle_corners[(i + 1) % corners_number]
+
+                corner.first_edge = Edge(corner, previous_corner)
+                corner.second_edge = Edge(corner, next_corner)
+
+                corner.compute_angle_between_edges()
+
             corners.extend(sub_puzzle_corners)
         return corners
 

@@ -14,63 +14,87 @@ class State:
             used_pieces = []
         self.used_pieces: list[Piece] = used_pieces
         self.current_working_piece_index: int = 0
-        self.corners: list[Point] = corners
+        self.corners: list[Corner] = corners
         self.current_corner_index: int = 0
         self.image: np.ndarray(int) = image.copy()
         self.last_piece_placed: Piece = last_piece_placed
         self.last_piece_placed_corner: Point = last_piece_placed_corner
 
     def get_next_state(self):
-        pass
-
-    def get_next_state_old(self):
         next_state = None
         while next_state is None and self.current_working_piece_index < len(self.working_pieces):
             working_piece = self.working_pieces[self.current_working_piece_index]
+            print("Trying", working_piece.name, "at corner n°", self.current_corner_index)
+            # Check for every corner of the piece if the angle match a shadow's corner:
+            piece_corner = working_piece.corners[0]
+            shape_corner = self.corners[self.current_corner_index]
+            piece_corner.compute_angle_between_edges()
+            print("Angle piece :" + str(piece_corner.angle_between_edges))
+            print("Angle shadow " + str(shape_corner.angle_between_edges))
+            if approx_eq(self.corners[self.current_corner_index].angle_between_edges, piece_corner.angle_between_edges):
+                print("Angle match")
 
-            if self.corners[self.current_corner_index] not in working_piece.corners_visited:
-                working_piece.position_in_image = self.corners[self.current_corner_index]
-                candidate_image = self.image.copy()
-                self.draw_shape_on_image(candidate_image, working_piece)
-                show_image(candidate_image)
+                # First Edge
+                angle_to_rotate = shape_corner.first_edge.direction.get_angle_with(piece_corner.first_edge.direction)
+                # Rotate the piece to align to edges
+                candidate_image = self.try_piece_in_image(angle_to_rotate, shape_corner, working_piece)
 
                 if self.accept_new_piece(self.image, candidate_image, working_piece.area):
-                    new_available_pieces = self.available_pieces.copy()
-                    new_available_pieces.pop(self.current_working_piece_index)
-                    new_corners = self.corners.copy()
-                    new_corners.extend(working_piece.get_points_in_image())
-                    new_used_pieces = self.used_pieces.copy()
-                    new_used_pieces.append(deepcopy(working_piece))
-                    next_state = State(
-                        available_pieces=new_available_pieces,
-                        image=candidate_image,
-                        corners=new_corners,
-                        used_pieces=self.used_pieces,
-                        last_piece_placed=self.available_pieces[self.current_working_piece_index],
-                        last_piece_placed_corner=self.corners[self.current_corner_index]
-                    )
+                    print("Placed", working_piece.name)
+                    next_state = self.create_next_state(candidate_image, working_piece)
+                    break
+                # Second edge
+                angle_to_rotate = shape_corner.second_edge.direction.get_angle_with(
+                    piece_corner.first_edge.direction)
+                # Rotate the piece to align to edges
+                candidate_image = self.try_piece_in_image(angle_to_rotate, shape_corner, working_piece)
+                if self.accept_new_piece(self.image, candidate_image, working_piece.area):
+                    print("Placed", working_piece.name)
+                    next_state = self.create_next_state(candidate_image, working_piece)
+                    break
 
-                working_piece.rotate_shape_around_pivot(45)
+            working_piece.next_corner()
 
-                if working_piece.rotation >= 360:
+            if working_piece.number_of_corner_swap % working_piece.max_corner_swap == 0:
+                if working_piece.name == "Parallelogram" and not working_piece.is_flipped:
+                    working_piece.flip()
+                else:
+                    if working_piece.name == "Parallelogram" and working_piece.is_flipped:
+                        working_piece.flip()
                     self.current_corner_index += 1
-                    working_piece.rotation = 0
-            else:
-                self.current_corner_index += 1
 
+            # If no more corner, try the next piece
             if self.current_corner_index >= len(self.corners):
                 self.current_corner_index = 0
-                if self.working_pieces[self.current_working_piece_index].name == "Parallelogram" and not self.working_pieces[self.current_working_piece_index].is_flipped:
-                    self.working_pieces[self.current_working_piece_index].flip()
-                else:
-                    self.current_working_piece_index += 1
-
-        if next_state is None and self.last_piece_placed is not None:
-            self.last_piece_placed.corners_visited.append(self.last_piece_placed_corner)
+                self.current_working_piece_index += 1
 
         return next_state
 
-    def draw_shape_on_image(self, image: np.ndarray([], dtype=int), piece):
+    def try_piece_in_image(self, angle_to_rotate, shape_corner, working_piece):
+        working_piece.position_in_image = shape_corner
+        working_piece.rotate_shape_around_pivot(angle_to_rotate)
+        candidate_image = self.image.copy()
+        self.draw_piece_in_image(candidate_image, working_piece)
+        working_piece.reset_rotation()
+        show_image(candidate_image)
+        return candidate_image
+
+    def create_next_state(self, candidate_image, working_piece):
+        new_available_pieces = self.available_pieces.copy()
+        new_available_pieces.pop(self.current_working_piece_index)
+        new_used_pieces = self.used_pieces.copy()
+        new_used_pieces.append(deepcopy(working_piece))
+        new_corners = self.image_processor.get_corners(candidate_image)
+        return State(
+            available_pieces=new_available_pieces,
+            image=candidate_image,
+            corners=new_corners,
+            used_pieces=self.used_pieces,
+            last_piece_placed=self.available_pieces[self.current_working_piece_index],
+            last_piece_placed_corner=self.corners[self.current_corner_index]
+        )
+
+    def draw_piece_in_image(self, image: np.ndarray([], dtype=int), piece):
         """
         draws a shape on the image from its vertexes coordinates
         :param image: image we want to draw in
@@ -113,7 +137,7 @@ def approx_eq(a, b):
 def search(initial_state) -> Node:  # backtracking
     node = Node(initial_state)
     while node.current_state is not None:
-        next_state = node.current_state.get_next_state_old()
+        next_state = node.current_state.get_next_state()
         if next_state is None:
             node = node.previous_node
         else:
