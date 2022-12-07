@@ -114,6 +114,8 @@ class Vector(Point):
         dot_product = self.x * other.x + self.y * other.y
         magnitude = self.get_magnitude() * other.get_magnitude()
         res = math.degrees(math.acos(dot_product / magnitude))
+        if self.x * other.y - self.y * other.x < 0:
+            res = - res
         return res
 
 
@@ -205,6 +207,7 @@ class Piece:
         changes the coordinates of the shape to the new coordinates after a rotation of (angle_between_edges)°
         :param angle: angle_between_edges of rotation in degrees (clockwise)
         """
+        angle = - angle  # to rotate counterclockwise
         self.rotation += angle
         angle = np.deg2rad(angle)
         for i in range(0, len(self.corners)):
