@@ -13,13 +13,14 @@ def draw_piece_in_image(image: np.ndarray([], dtype=int), piece, color: int | tu
     :param color: color of the piece to draw, white by default
     :return the new matrix of the image with the shape in it
     """
+
     points = []
     for point in piece.get_points_in_image():
         points.append([point.x, point.y])
     points = np.array(points, np.int32)
     points = points.reshape((-1, 1, 2))
-    cv.fillPoly(image, [points], color)
-
+    result_image = cv.fillPoly(image, [points], color)
+    return result_image
 
 def approx_eq(a, b):
     return b * .96 < a < b * 1.04
@@ -33,20 +34,18 @@ def search(initial_state) -> Node:  # backtracking
             node = node.previous_node
         else:
             node = Node(current_state=next_state, previous_node=node)
-            show_image(node.current_state.image)
         if node is None:
-            print("No possible solution.")
             return None
         if len(node.current_state.available_pieces) == 0:
-            print("Found solution!")
             return node
     return None
 
 
 def reconstruct_solution(image: np.ndarray, pieces: list[Piece]) -> np.ndarray:
-    image_rgb =  cv.cvtColor(image, cv.COLOR_GRAY2RGB)
+    image_rgb =  cv.cvtColor(image, cv.COLOR_GRAY2BGR)
     for piece in pieces:
         draw_piece_in_image(image_rgb, piece, piece.color)
+    image_rgb = cv.cvtColor(image_rgb, cv.COLOR_BGR2RGB)
     return image_rgb
 
 

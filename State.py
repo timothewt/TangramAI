@@ -26,13 +26,11 @@ class State:
         next_state = None
         while next_state is None and self.current_working_piece_index < len(self.working_pieces):
             working_piece = self.working_pieces[self.current_working_piece_index]
-            print("--- New state try ---\nTrying", working_piece.name, "at corner n°", self.current_corner_index)
             # Check for every corner of the piece if the angle match a shadow's corner:
             piece_corner = working_piece.corners[0]
             shape_corner = self.corners[self.current_corner_index]
 
             if approx_eq(abs(self.corners[self.current_corner_index].angle_between_edges), abs(piece_corner.angle_between_edges)):
-                print("Angle match")
                 # First Edge
                 angle_to_rotate = shape_corner.first_edge.direction.get_angle_with(piece_corner.first_edge.direction)
 
@@ -40,7 +38,6 @@ class State:
                 candidate_image = self.try_piece_in_image(angle_to_rotate, shape_corner, working_piece)
 
                 if self.accept_new_piece(self.image, candidate_image, working_piece.area):
-                    print("Placed", working_piece.name)
                     next_state = self.create_next_state(candidate_image, working_piece)
                     break
                 # Second edge
@@ -50,7 +47,6 @@ class State:
                 candidate_image = self.try_piece_in_image(angle_to_rotate, shape_corner, working_piece)
 
                 if self.accept_new_piece(self.image, candidate_image, working_piece.area):
-                    print("Placed", working_piece.name)
                     next_state = self.create_next_state(candidate_image, working_piece)
                     break
 
@@ -75,7 +71,8 @@ class State:
         working_piece.position_in_image = shape_corner
         candidate_image = self.image.copy()
         working_piece.rotate_shape_around_pivot(angle_to_rotate)
-        draw_piece_in_image(candidate_image, working_piece)
+        candidate_image = draw_piece_in_image(candidate_image, working_piece)
+        show_image(candidate_image)
         return candidate_image
 
     def create_next_state(self, candidate_image, working_piece):
@@ -84,15 +81,11 @@ class State:
         new_used_pieces = self.used_pieces.copy()
         new_used_pieces.append(deepcopy(working_piece))
         new_corners = self.image_processor.get_corners(candidate_image)
-        temp = candidate_image.copy()
-        self.image_processor.corners = new_corners
-        self.image_processor.draw_corners(temp)
-        show_image(temp)
         return State(
             available_pieces=new_available_pieces,
             image=candidate_image,
             corners=new_corners,
-            used_pieces=self.used_pieces,
+            used_pieces=new_used_pieces,
             last_piece_placed=self.available_pieces[self.current_working_piece_index],
             last_piece_placed_corner=self.corners[self.current_corner_index]
         )

@@ -9,7 +9,7 @@ from ShapeComposer import ShapeComposer
 if __name__ == "__main__":
     # s_c = ShapeComposer()
     # user_image_file_name = s_c.run()
-    user_image_file_name = '1466019767509923539332.png'  # for development purposes
+    user_image_file_name = '3282301980754824700651.png'  # for development purposes
 
     image = ImageProcessor("user_shapes/" + user_image_file_name)
 
@@ -26,6 +26,5 @@ if __name__ == "__main__":
     root_state = State(available_pieces, image.image, image.corners)
     result = search(root_state)
     if result:
-        result_image = reconstruct_solution(result.current_state.image, result.current_state.used_pieces)
-        print("mess")
+        result_image = reconstruct_solution(image.image, result.current_state.used_pieces)
         show_image(result_image)
