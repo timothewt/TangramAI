@@ -1,15 +1,17 @@
 from elements import *
-from State import State, search
-from ImageProcessor import ImageProcessor, show_image
+from State import State
+from utils import *
+from ImageProcessor import ImageProcessor
+from utils import show_image
 from ShapeComposer import ShapeComposer
 
 
 if __name__ == "__main__":
     # s_c = ShapeComposer()
     # user_image_file_name = s_c.run()
-    user_image_file_name = '3282301980754824700651.png'  # for development purposes
+    user_image_file_name = '1466019767509923539332.png'  # for development purposes
 
-    image = ImageProcessor("user_shapes/4352155038151493992688.png")
+    image = ImageProcessor("user_shapes/" + user_image_file_name)
 
     available_pieces = [
         LargeTriangle((8, 189, 100)),
@@ -24,4 +26,6 @@ if __name__ == "__main__":
     root_state = State(available_pieces, image.image, image.corners)
     result = search(root_state)
     if result:
-        show_image(result.current_state.image)
+        result_image = reconstruct_solution(result.current_state.image, result.current_state.used_pieces)
+        print("mess")
+        show_image(result_image)

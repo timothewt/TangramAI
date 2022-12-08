@@ -1,7 +1,7 @@
 from math import floor, sqrt, ceil
-import cv2 as cv
 from settings import *
 from elements import *
+from utils import *
 
 
 class ImageProcessor:
@@ -30,7 +30,7 @@ class ImageProcessor:
     def draw_corners(self, image):
         for corner in self.corners:
             # cv.circle(image, (corner.x, corner.y),3,128, -1)
-            image = cv.putText(image, str(round(corner.angle_between_edges)), (corner.x, corner.y), cv.FONT_HERSHEY_SIMPLEX,
+            image = cv.putText(image, str(round(corner.angle_between_edges * 10)) + ","+ str(self.corners.index(corner)), (corner.x, corner.y), cv.FONT_HERSHEY_SIMPLEX,
                                 .5, 128, 2, cv.LINE_AA)
             image = cv.line(image, (corner.first_edge.start_point.x, corner.first_edge.start_point.y),
                             (int(corner.first_edge.direction.get_normalized().x * 20 + corner.first_edge.start_point.x) , int(corner.first_edge.direction.get_normalized().y * 20 + corner.first_edge.start_point.y)),
@@ -52,7 +52,6 @@ class ImageProcessor:
                 continue
 
             sub_puzzle_corners = [Corner(contour[0][0][0], contour[0][0][1])]
-            cv.circle(image, (sub_puzzle_corners[0].x, sub_puzzle_corners[0].y), 3, 128, -1)
             contour_length = len(contour)
 
             for i in range(1, contour_length):  # gets all the corners
@@ -129,11 +128,6 @@ class ImageProcessor:
                         image[i + 1][j] = 0
                         image[i + 2][j] = 0
         return image
-
-
-def show_image(image):
-    cv.imshow("Tangram", image)
-    cv.waitKey(0)
 
 
 if __name__ == "__main__":
