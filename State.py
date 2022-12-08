@@ -44,7 +44,7 @@ class State:
 
                 if self.accept_new_piece(self.image, candidate_image, working_piece.area):
                     next_state = self.create_next_state(candidate_image, working_piece)
-                    break
+
 
             working_piece.next_corner()
 
@@ -68,7 +68,7 @@ class State:
         candidate_image = self.image.copy()
         working_piece.rotate_shape_around_pivot(angle_to_rotate)
         candidate_image = draw_piece_in_image(candidate_image, working_piece)
-        show_image(candidate_image)
+        #show_image(candidate_image)
         return candidate_image
 
     def create_next_state(self, candidate_image, working_piece):
