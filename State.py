@@ -35,6 +35,20 @@ class State:
                 print("Angle match")
                 # First Edge
                 angle_to_rotate = shape_corner.first_edge.direction.get_angle_with(piece_corner.first_edge.direction)
+                temp = self.image.copy()
+                self.draw_piece_in_image(temp, working_piece)
+                for edge in [working_piece.corners[0].first_edge, working_piece.corners[0].second_edge, working_piece.corners[1].first_edge, working_piece.corners[1].second_edge, working_piece.corners[2].first_edge, working_piece.corners[2].second_edge]:
+                    temp = cv.line(temp, (int(edge.start_point.x + working_piece.get_points_in_image()[0].x), int(edge.start_point.y + working_piece.get_points_in_image()[0].y)),
+                                    (int(edge.direction.get_normalized().x * 20 + edge.start_point.x+ + working_piece.get_points_in_image()[0].x) , int(edge.direction.get_normalized().y * 20 + edge.start_point.y+ working_piece.get_points_in_image()[0].y)),
+                                    150, 2)
+                edge = shape_corner.first_edge
+                temp = cv.line(temp, (int(edge.start_point.x), int(edge.start_point.y)),
+                        (int(edge.direction.get_normalized().x * 30 + edge.start_point.x) , int(edge.direction.get_normalized().y * 30 + edge.start_point.y)),
+                        90, 4)
+                temp = cv.putText(temp, "Angle " + str(round(angle_to_rotate)), (shape_corner.x + 30, shape_corner.y), cv.FONT_HERSHEY_SIMPLEX,
+                                   .5, 128, 2, cv.LINE_AA)
+                show_image(temp)
+
                 # Rotate the piece to align to edges
                 candidate_image = self.try_piece_in_image(angle_to_rotate, shape_corner, working_piece, shape_corner.first_edge)
 
@@ -42,8 +56,27 @@ class State:
                     print("Placed", working_piece.name)
                     next_state = self.create_next_state(candidate_image, working_piece)
                     break
+                show_image(candidate_image)
                 # Second edge
+                piece_corner = working_piece.corners[0]
                 angle_to_rotate = shape_corner.second_edge.direction.get_angle_with(piece_corner.first_edge.direction)
+                temp = self.image.copy()
+                self.draw_piece_in_image(temp, working_piece)
+                for edge in [working_piece.corners[0].first_edge, working_piece.corners[0].second_edge, working_piece.corners[1].first_edge, working_piece.corners[1].second_edge, working_piece.corners[2].first_edge, working_piece.corners[2].second_edge]:
+                    temp = cv.line(temp, (int(edge.start_point.x + working_piece.get_points_in_image()[0].x), int(edge.start_point.y + working_piece.get_points_in_image()[0].y)),
+                                    (int(edge.direction.get_normalized().x * 20 + edge.start_point.x+ + working_piece.get_points_in_image()[0].x) , int(edge.direction.get_normalized().y * 20 + edge.start_point.y+ working_piece.get_points_in_image()[0].y)),
+                                    150, 2)
+                edge = shape_corner.second_edge
+                temp = cv.line(temp, (int(edge.start_point.x), int(edge.start_point.y)),
+                        (int(edge.direction.get_normalized().x * 30 + edge.start_point.x) , int(edge.direction.get_normalized().y * 30 + edge.start_point.y)),
+                        90, 4)
+                # edge = piece_corner.first_edge
+                # temp = cv.line(temp, (int(edge.start_point.x + working_piece.get_points_in_image()[0].x), int(edge.start_point.y + working_piece.get_points_in_image()[0].y)),
+                        # (int(edge.direction.get_normalized().x * 30 + edge.start_point.x + working_piece.get_points_in_image()[0].x) , int(edge.direction.get_normalized().y * 30 + edge.start_point.y + working_piece.get_points_in_image()[0].y)),
+                        # 150, 4)
+                temp = cv.putText(temp, "Angle " + str(round(angle_to_rotate)), (shape_corner.x + 30, shape_corner.y), cv.FONT_HERSHEY_SIMPLEX,
+                                   .5, 128, 2, cv.LINE_AA)
+                show_image(temp)
                 # Rotate the piece to align to edges
                 candidate_image = self.try_piece_in_image(angle_to_rotate, shape_corner, working_piece, shape_corner.second_edge)
 
@@ -51,6 +84,7 @@ class State:
                     print("Placed", working_piece.name)
                     next_state = self.create_next_state(candidate_image, working_piece)
                     break
+                show_image(candidate_image)
 
             working_piece.next_corner()
 
@@ -74,18 +108,6 @@ class State:
         candidate_image = self.image.copy()
         working_piece.rotate_shape_around_pivot(angle_to_rotate)
         self.draw_piece_in_image(candidate_image, working_piece)
-
-        candidate_image = cv.line(candidate_image, (int(edge.start_point.x), int(edge.start_point.y)),
-                        (int(edge.direction.get_normalized().x * 30 + edge.start_point.x) , int(edge.direction.get_normalized().y * 30 + edge.start_point.y)),
-                        90, 4)
-        for edge in [working_piece.corners[0].first_edge, working_piece.corners[0].second_edge, working_piece.corners[1].first_edge, working_piece.corners[1].second_edge, working_piece.corners[2].first_edge, working_piece.corners[2].second_edge]:
-            candidate_image = cv.line(candidate_image, (int(edge.start_point.x + working_piece.get_points_in_image()[0].x), int(edge.start_point.y + working_piece.get_points_in_image()[0].y)),
-                            (int(edge.direction.get_normalized().x * 20 + edge.start_point.x+ + working_piece.get_points_in_image()[0].x) , int(edge.direction.get_normalized().y * 20 + edge.start_point.y+ working_piece.get_points_in_image()[0].y)),
-                            150, 2)
-        candidate_image = cv.putText(candidate_image, "After rotation " + str(round(angle_to_rotate)), (shape_corner.x + 30, shape_corner.y), cv.FONT_HERSHEY_SIMPLEX,
-                           .5, 128, 2, cv.LINE_AA)
-
-        show_image(candidate_image)
         return candidate_image
 
     def create_next_state(self, candidate_image, working_piece):

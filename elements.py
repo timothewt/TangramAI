@@ -113,7 +113,10 @@ class Vector(Point):
         """
         dot_product = self.x * other.x + self.y * other.y
         magnitude = self.get_magnitude() * other.get_magnitude()
-        res = math.degrees(math.acos(dot_product / magnitude))
+        try:
+            res = math.degrees(math.acos(dot_product / magnitude))
+        except ValueError:  # math domain error
+            res = 180
         if self.x * other.y - self.y * other.x < 0:
             res = - res
         return res
