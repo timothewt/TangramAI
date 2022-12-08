@@ -9,7 +9,7 @@ from ShapeComposer import ShapeComposer
 if __name__ == "__main__":
     # s_c = ShapeComposer()
     # user_image_file_name = s_c.run()
-    user_image_file_name = '3282301980754824700651.png'  # for development purposes
+    user_image_file_name = '1466019767509923539332.png'  # for development purposes
 
     image = ImageProcessor("user_shapes/" + user_image_file_name)
 

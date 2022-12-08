@@ -5,7 +5,7 @@ from Node import Node
 from elements import Piece
 
 
-def draw_piece_in_image(image: np.ndarray([], dtype=int), piece, color: int | tuple[int, int, int] = 255):
+def draw_piece_in_image(image: np.ndarray([], dtype=int), piece, color: int | tuple[int, int, int] = 230):
     """
     draws a shape on the image from its vertexes coordinates
     :param image: image we want to draw in
@@ -23,7 +23,7 @@ def draw_piece_in_image(image: np.ndarray([], dtype=int), piece, color: int | tu
     return result_image
 
 def approx_eq(a, b):
-    return b * .96 < a < b * 1.04
+    return b - 2 < a < b + 2
 
 
 def search(initial_state) -> Node:  # backtracking
@@ -52,3 +52,13 @@ def reconstruct_solution(image: np.ndarray, pieces: list[Piece]) -> np.ndarray:
 def show_image(image):
     cv.imshow("Tangram", image)
     cv.waitKey(0)
+
+def get_duplicate(values: list[float]) -> float:
+    result = 0
+    for i in range(len(values)):
+        for j in range(i + 1, len(values)):
+            if approx_eq(abs(values[i]), 180) and approx_eq(-values[i], values[j]):  # we may have to similar angles like 180 and -180
+                result = values[i]
+            if approx_eq(values[i], values[j]):
+                result = values[i]
+    return result

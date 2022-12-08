@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from ImageProcessor import ImageProcessor
 from elements import *
-from utils import draw_piece_in_image, approx_eq, show_image
+from utils import *
 
 
 class State:
@@ -32,18 +32,14 @@ class State:
 
             if approx_eq(abs(self.corners[self.current_corner_index].angle_between_edges), abs(piece_corner.angle_between_edges)):
                 # First Edge
-                angle_to_rotate = shape_corner.first_edge.direction.get_angle_with(piece_corner.first_edge.direction)
+                a1 = shape_corner.first_edge.direction.get_angle_with(piece_corner.first_edge.direction)
+                a2 = shape_corner.first_edge.direction.get_angle_with(piece_corner.second_edge.direction)
+                a3 = shape_corner.second_edge.direction.get_angle_with(piece_corner.first_edge.direction)
+                a4 = shape_corner.second_edge.direction.get_angle_with(piece_corner.second_edge.direction)
+
+                angle_to_rotate = get_duplicate([a1, a2, a3, a4])
 
                 # Rotate the piece to align to edges
-                candidate_image = self.try_piece_in_image(angle_to_rotate, shape_corner, working_piece)
-
-                if self.accept_new_piece(self.image, candidate_image, working_piece.area):
-                    next_state = self.create_next_state(candidate_image, working_piece)
-                    break
-                # Second edge
-                piece_corner = working_piece.corners[0]
-                angle_to_rotate = shape_corner.second_edge.direction.get_angle_with(piece_corner.first_edge.direction)
-
                 candidate_image = self.try_piece_in_image(angle_to_rotate, shape_corner, working_piece)
 
                 if self.accept_new_piece(self.image, candidate_image, working_piece.area):
