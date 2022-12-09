@@ -5,7 +5,7 @@ from Node import Node
 from elements import Piece
 
 
-def draw_piece_in_image(image: np.ndarray([], dtype=int), piece, color: int | tuple[int, int, int] = 230):
+def draw_piece_in_image(image: np.ndarray([], dtype=int), piece, color: int | tuple[int, int, int] = 255):
     """
     draws a shape on the image from its vertexes coordinates
     :param image: image we want to draw in
@@ -13,7 +13,6 @@ def draw_piece_in_image(image: np.ndarray([], dtype=int), piece, color: int | tu
     :param color: color of the piece to draw, white by default
     :return the new matrix of the image with the shape in it
     """
-
     points = []
     for point in piece.get_points_in_image():
         points.append([point.x, point.y])
