@@ -14,17 +14,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Tangram solver')
     parser.add_argument('--imagePath', type=str, default='', help='Path to the image to solve')
     parser.add_argument('--saveData', type=bool, default=False, help='Path to save the data relative to the solving process')
-    parser.add_argument('--createFig', type=bool, default=False, help='Option to create a figure of using the editor')
+    parser.add_argument('--createFig', type=bool, default=True, help='Option to create a figure of using the editor')
 
     args = parser.parse_args()
     user_image_path =''
 
-    if args.createFig:
+    if args.imagePath != '':
+        user_image_path = args.imagePath
+    elif args.createFig:
         editor = ShapeComposer()
         user_image_path = editor.run()
         print("Image path: ", user_image_path)
-    elif args.imagePath != '' :
-        user_image_path = args.imagePath
+
+
 
     #Solve the tangram
     image = ImageProcessor(user_image_path)

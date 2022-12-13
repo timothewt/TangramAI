@@ -13,6 +13,7 @@ class ImageProcessor:
         self.image = None
         if path_to_image is not None:
             self.image = self.load_image(path_to_image)  # image of the shape we want to reproduce with the tangram pieces
+        #self.show_angle(self.image)
 
     def load_image(self, path_to_image: str) -> np.ndarray([], dtype=int):
         """
@@ -46,6 +47,7 @@ class ImageProcessor:
         final_image = utils.draw_angles_in_image(image, (0,255,0) ,self.corners)
         cv.imshow("Image", final_image)
         cv.waitKey(0)
+
     def get_corners(self, image: np.ndarray) -> list[Corner]:
         """
         Gives the coordinates of all the corners of the shape, and all its edges
@@ -63,12 +65,17 @@ class ImageProcessor:
 
             for i in range(1, contour_length):  # gets all the corners
                 corner = Corner(contour[i][0][0], contour[i][0][1])
-                if not corner.close_to(sub_puzzle_corners[-1], MIN_DIST_BETWEEN_TWO_CORNERS):
+                if not corner.close_to(sub_puzzle_corners[-1]):
                     sub_puzzle_corners.append(corner)
                 else:
                     # if too close, changes the last corner to the average of the two
                     sub_puzzle_corners[-1] = Corner(int((sub_puzzle_corners[-1].x + corner.x) / 2),
                                                     int((sub_puzzle_corners[-1].y + corner.y) / 2))
+
+            if sub_puzzle_corners[0].close_to(sub_puzzle_corners[-1]):
+                sub_puzzle_corners[0] = Corner(int((sub_puzzle_corners[-1].x + sub_puzzle_corners[0].x) / 2),
+                                                int((sub_puzzle_corners[-1].y + sub_puzzle_corners[0].y) / 2))
+                sub_puzzle_corners.pop()
 
             corners_number = len(sub_puzzle_corners)
             for i in range(corners_number):  # link them with edges

@@ -97,7 +97,7 @@ class State:
         :param piece_area: area (number of pixels) of the piece placed
         :return: True if the piece is accepted, False otherwise
         """
-        accept_ratio_black_covered = .95  # % of total pixels covered that are black
+        accept_ratio_black_covered = .97  # % of total pixels covered that are black
         covered_black_pixels = (candidate_img == 255).sum() - (prev_img == 255).sum()
         black_covered_ratio = covered_black_pixels / piece_area
 

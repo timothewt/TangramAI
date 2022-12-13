@@ -16,14 +16,13 @@ class Point:
         self.x: float = x
         self.y: float = y
 
-    def close_to(self, other: Point, distance=0.1) -> bool:
+    def close_to(self, other: Point) -> bool:
         """
         Checks if the current point is close to another point
         :param other: the other point
-        :param distance: the distance to check
         :return: True if the current point is close to the other one, False otherwise
         """
-        return np.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2) < distance
+        return np.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2) < settings.MIN_DIST_BETWEEN_TWO_CORNERS
 
     def __eq__(self, other) -> bool:
         return self.x == other.x and self.y == other.y

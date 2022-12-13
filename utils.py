@@ -53,6 +53,8 @@ def search(initial_state) -> Node:  # backtracking
             node = node.previous_node
         else:
             node = Node(current_state=next_state, previous_node=node)
+
+            show_image(next_state.image)
         if node is None:
             return None
         if len(node.current_state.available_pieces) == 0:
