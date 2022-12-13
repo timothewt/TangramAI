@@ -203,4 +203,4 @@ class ShapeComposer:
 
             self.draw_shape_composer()
 
-        return self.output_file_name
+        return "user_shapes/" + self.output_file_name

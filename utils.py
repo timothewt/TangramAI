@@ -2,7 +2,7 @@ from __future__ import annotations
 import cv2 as cv
 import numpy as np
 from Node import Node
-from elements import Piece
+from elements import Piece, Corner
 
 
 def draw_piece_in_image(image: np.ndarray([], dtype=int), piece, color: int | tuple[int, int, int] = 255):
@@ -20,6 +20,26 @@ def draw_piece_in_image(image: np.ndarray([], dtype=int), piece, color: int | tu
     points = points.reshape((-1, 1, 2))
     result_image = cv.fillPoly(image, [points], color)
     return result_image
+
+def draw_angles_in_image(image : np.ndarray([], dtype=int), color : int | tuple[int, int, int] = (255,0,255), corners : list[Corner] = None) :
+    final_img = image.copy()
+    final_img = cv.cvtColor(final_img, cv.COLOR_GRAY2BGR)
+    length_edges = 50
+    for corner in corners:
+        final_img = cv.line(final_img, (corner.x, corner.y), (
+            int(corner.first_edge.direction.get_normalized().x * length_edges) + corner.x,
+            int(corner.first_edge.direction.get_normalized().y * length_edges) + corner.y), (255,0,0), 2)
+        final_img = cv.line(final_img, (corner.x, corner.y),
+            (int(corner.second_edge.direction.get_normalized().x * length_edges)+ corner.x,
+             int(corner.second_edge.direction.get_normalized().y * length_edges)+ corner.y), (0,0,255), 2)
+        final_img = cv.circle(final_img, (corner.x, corner.y), 5, (255,255,0), -1)
+        final_img = cv.putText(final_img, str(round(corner.angle_between_edges)), (corner.x, corner.y), cv.FONT_HERSHEY_SIMPLEX,
+                            1, color, 2, cv.LINE_AA)
+
+
+    final_img = cv.cvtColor(final_img, cv.COLOR_BGR2RGB)
+    return final_img
+
 
 def approx_eq(a, b):
     return b - 2 < a < b + 2

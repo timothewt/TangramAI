@@ -1,8 +1,11 @@
+from __future__ import annotations
 from math import floor, sqrt, ceil
+
+import utils
 from settings import *
 from elements import *
 from utils import *
-
+import cv2 as cv
 
 class ImageProcessor:
     def __init__(self, path_to_image: str = None) -> None:
@@ -39,6 +42,10 @@ class ImageProcessor:
                             (int(corner.second_edge.direction.get_normalized().x * 20 + corner.second_edge.start_point.x) , int(corner.second_edge.direction.get_normalized().y * 20 + corner.second_edge.start_point.y)),
                             150, 2)
 
+    def show_angle(self, image):
+        final_image = utils.draw_angles_in_image(image, (0,255,0) ,self.corners)
+        cv.imshow("Image", final_image)
+        cv.waitKey(0)
     def get_corners(self, image: np.ndarray) -> list[Corner]:
         """
         Gives the coordinates of all the corners of the shape, and all its edges
