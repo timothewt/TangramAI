@@ -28,8 +28,23 @@ class ImageProcessor:
         resized_image = self.resize_image(black_and_white_image)  # resizes the image for the tangram pieces to be the good size
         resized_black_and_white_image = self.image_to_black_and_white(resized_image)  # to b&w to eliminate gray pixels
         filled_image = self.fill_shape(resized_black_and_white_image)  # in case of small holes between very close pieces
-        self.corners = self.get_corners(filled_image.copy())
+        self.corners = self.get_corners(filled_image)
+        print(self.corners)
         return filled_image
+
+
+    def get_max_area(self, image) :
+        """
+        gets the areas of the contours in the image and the contours themselves
+        :return: a tuple of the areas and the contours
+        """
+        max_area_contours = 0
+        contours = cv.findContours(image, 1, 2)[0]
+        for contour in contours:
+            tmp_area = cv.contourArea(contour)
+            if tmp_area > max_area_contours:
+                max_area_contours = tmp_area
+        return max_area_contours
 
     def draw_corners(self, image):
         for corner in self.corners:
@@ -54,8 +69,8 @@ class ImageProcessor:
         :param image: image from which we want the corners and edges
         :return: a list of the corners, which also has the edges in it
         """
-        contours = cv.findContours(image, 1, 2)[0]
         corners = []
+        contours = cv.findContours(image, 1, 2)[0]
         for contour in contours[:-1]:  # last contour is the contour of the image
             if cv.contourArea(contour) < MIN_SUB_PUZZLE_AREA:  # if the sub puzzle is too small, skips it
                 continue

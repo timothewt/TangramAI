@@ -20,10 +20,23 @@ class State:
         self.image: np.ndarray = image.copy()
         self.last_piece_placed: Piece = last_piece_placed
         self.last_piece_placed_corner: Point = last_piece_placed_corner
+
         self.image_processor = ImageProcessor()
 
     def get_next_state(self):
         next_state = None
+        #Check if remaining areas are too small to fit smallest remaining piece
+        #Get area of largest remaining piece
+        largest_piece_area = 0
+        for piece in self.available_pieces:
+            if piece.area > largest_piece_area:
+                largest_piece_area = piece.area
+        max_area = self.image_processor.get_max_area(self.image)
+
+        if largest_piece_area * 0.95 > max_area:
+            return None
+
+        #Try pieces in image
         while next_state is None and self.current_working_piece_index < len(self.working_pieces):
             working_piece = self.working_pieces[self.current_working_piece_index]
             # Check for every corner of the piece if the angle match a shadow's corner:
@@ -64,10 +77,19 @@ class State:
         return next_state
 
     def try_piece_in_image(self, angle_to_rotate, shape_corner, working_piece):
+        #Rotate the piece and change its position
         working_piece.position_in_image = shape_corner
-        candidate_image = self.image.copy()
         working_piece.rotate_shape_around_pivot(angle_to_rotate)
+        #Special Rule for large triangles
+        if str(working_piece) == "Large Triangle" :
+            if not check_2_corners_triangle(working_piece.get_points_in_image(), self.image_processor.get_corners(self.image)):
+                #Return the same image so it will be rejected
+                return self.image
+
+        #Draw the piece on the image
+        candidate_image = self.image.copy()
         candidate_image = draw_piece_in_image(candidate_image, working_piece)
+        #Show image
         #show_image(candidate_image)
         return candidate_image
 
@@ -76,6 +98,7 @@ class State:
         new_available_pieces.pop(self.current_working_piece_index)
         new_used_pieces = self.used_pieces.copy()
         new_used_pieces.append(deepcopy(working_piece))
+        #Compute contours
         new_corners = self.image_processor.get_corners(candidate_image)
         return State(
             available_pieces=new_available_pieces,

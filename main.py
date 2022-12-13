@@ -41,7 +41,6 @@ if __name__ == "__main__":
         SmallTriangle((44, 174, 242)),
         SmallTriangle((251, 140, 50)),
     ]
-
     root_state = State(available_pieces, image.image, image.corners)
     start_time = time.time()
     result = search(root_state)

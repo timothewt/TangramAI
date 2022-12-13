@@ -53,8 +53,6 @@ def search(initial_state) -> Node:  # backtracking
             node = node.previous_node
         else:
             node = Node(current_state=next_state, previous_node=node)
-
-            show_image(next_state.image)
         if node is None:
             return None
         if len(node.current_state.available_pieces) == 0:
@@ -83,3 +81,18 @@ def get_duplicate(values: list[float]) -> float:
             if approx_eq(values[i], values[j]):
                 result = values[i]
     return result
+
+
+def check_2_corners_triangle(corners_triangle, corners_shape):
+    count = 0
+    corner_t_index = 0
+    while corner_t_index < len(corners_triangle) :
+        corner_s_index = 0
+        while corner_s_index < len(corners_shape):
+            if corners_triangle[corner_t_index].close_to(corners_shape[corner_s_index], 10):
+                count += 1
+                corner_t_index += 1
+                corner_s_index = len(corners_shape)
+            corner_s_index += 1
+        corner_t_index += 1
+    return count > 1
