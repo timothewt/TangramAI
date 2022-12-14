@@ -1,67 +1,50 @@
 from __future__ import annotations
 from copy import deepcopy
-
-from ImageProcessor import ImageProcessor
-from elements import *
 from utils import *
 
 
 class State:
-    def __init__(self, available_pieces, image, corners, used_pieces=None, last_piece_placed=None,
-                 last_piece_placed_corner=None):
-        self.available_pieces: list[Piece] = available_pieces.copy()
+    """
+    Used to represent the current state of the puzzle, i.e. the current pieces' configuration.
+
+    Attributes:
+        available_pieces:            All the pieces remaining to complete the puzzle
+        working_pieces:              Used to store the pieces that we move, so the available_pieces one stay at the origin
+        used_pieces:                 Pieces already placed in this configuration, used to reconstruct the solution
+        current_working_piece_index: Index of the piece we are currently trying to place of the puzzle
+        current_corner_index:        Index of the corner on which we are trying to place the current working piece
+        image:                       Image of the current puzzle configuration
+        corners:                     List of the corners of the image_processor
+    """
+    def __init__(self, available_pieces, image, used_pieces=None):
+        self.available_pieces: list[Piece] = available_pieces
         self.working_pieces: list[Piece] = deepcopy(available_pieces)
-        if used_pieces is None:
-            used_pieces = []
-        self.used_pieces: list[Piece] = used_pieces
+        self.used_pieces: list[Piece] = used_pieces if used_pieces is not None else []
         self.current_working_piece_index: int = 0
-        self.corners: list[Corner] = corners
         self.current_corner_index: int = 0
-        self.image: np.ndarray = image.copy()
-        self.last_piece_placed: Piece = last_piece_placed
-        self.last_piece_placed_corner: Point = last_piece_placed_corner
+        self.image: np.ndarray = image
+        self.corners: list[Corner] = get_corners(self.image)
 
-        self.image_processor = ImageProcessor()
-
-    def get_next_state(self):
+    def get_next_state(self) -> State:
+        """
+        Gets the next state of the current puzzle by placing a new piece on the image_processor.
+        :return: a new State if another piece can be placed on the current puzzle configuration, None otherwise
+        """
         next_state = None
-        #Check if remaining areas are too small to fit smallest remaining piece
-        #Get area of largest remaining piece
-        largest_piece_area = 0
-        for piece in self.available_pieces:
-            if piece.area > largest_piece_area:
-                largest_piece_area = piece.area
-        max_area = self.image_processor.get_max_area(self.image)
 
-        if largest_piece_area * 0.95 > max_area:
-            return None
-
-        #Try pieces in image
         while next_state is None and self.current_working_piece_index < len(self.working_pieces):
             working_piece = self.working_pieces[self.current_working_piece_index]
-            # Check for every corner of the piece if the angle match a shadow's corner:
-            piece_corner = working_piece.corners[0]
             shape_corner = self.corners[self.current_corner_index]
 
-            if approx_eq(abs(self.corners[self.current_corner_index].angle_between_edges), abs(piece_corner.angle_between_edges)):
-                # First Edge
-                a1 = shape_corner.first_edge.direction.get_angle_with(piece_corner.first_edge.direction)
-                a2 = shape_corner.first_edge.direction.get_angle_with(piece_corner.second_edge.direction)
-                a3 = shape_corner.second_edge.direction.get_angle_with(piece_corner.first_edge.direction)
-                a4 = shape_corner.second_edge.direction.get_angle_with(piece_corner.second_edge.direction)
+            if approx_eq(abs(shape_corner.angle_between_edges), abs(working_piece.corners[0].angle_between_edges)):
+                is_piece_accepted, candidate_image = is_piece_accepted_at_shape_corner(self.image.copy(), working_piece, shape_corner)
 
-                angle_to_rotate = get_duplicate([a1, a2, a3, a4])
+                if is_piece_accepted:
+                    next_state = self.generate_next_state(candidate_image, working_piece)
 
-                # Rotate the piece to align to edges
-                candidate_image = self.try_piece_in_image(angle_to_rotate, shape_corner, working_piece)
+            working_piece.shift_corners()
 
-                if self.accept_new_piece(self.image, candidate_image, working_piece.area):
-                    next_state = self.create_next_state(candidate_image, working_piece)
-
-
-            working_piece.next_corner()
-
-            if working_piece.number_of_corner_swap % working_piece.max_corner_swap == 0:
+            if working_piece.corners_shifts_counter % working_piece.max_corners_shifts == 0:
                 if working_piece.name == "Parallelogram" and not working_piece.is_flipped:
                     working_piece.flip()
                 else:
@@ -69,62 +52,28 @@ class State:
                         working_piece.flip()
                     self.current_corner_index += 1
 
-            # If no more corner, try the next piece
             if self.current_corner_index >= len(self.corners):
                 self.current_corner_index = 0
                 self.current_working_piece_index += 1
 
         return next_state
 
-    def try_piece_in_image(self, angle_to_rotate, shape_corner, working_piece):
-        #Rotate the piece and change its position
-        working_piece.position_in_image = shape_corner
-        working_piece.rotate_shape_around_pivot(angle_to_rotate)
-        #Special Rule for large triangles
-        if str(working_piece) == "Large Triangle" :
-            if not check_2_corners_triangle(working_piece.get_points_in_image(), self.image_processor.get_corners(self.image)):
-                #Return the same image so it will be rejected
-                return self.image
-
-        #Draw the piece on the image
-        candidate_image = self.image.copy()
-        candidate_image = draw_piece_in_image(candidate_image, working_piece)
-        #Show image
-        #show_image(candidate_image)
-        return candidate_image
-
-    def create_next_state(self, candidate_image, working_piece):
+    def generate_next_state(self, image: np.ndarray, piece_placed: Piece) -> State:
+        """
+        Used to pass by value the new state attributes
+        :param image: image_processor with the new piece placed
+        :param piece_placed: piece placed
+        :return: the new State
+        """
         new_available_pieces = self.available_pieces.copy()
         new_available_pieces.pop(self.current_working_piece_index)
         new_used_pieces = self.used_pieces.copy()
-        new_used_pieces.append(deepcopy(working_piece))
-        #Compute contours
-        new_corners = self.image_processor.get_corners(candidate_image)
+        new_used_pieces.append(deepcopy(piece_placed))
         return State(
             available_pieces=new_available_pieces,
-            image=candidate_image,
-            corners=new_corners,
-            used_pieces=new_used_pieces,
-            last_piece_placed=self.available_pieces[self.current_working_piece_index],
-            last_piece_placed_corner=self.corners[self.current_corner_index]
+            image=image,
+            used_pieces=new_used_pieces
         )
-
-    def accept_new_piece(self, prev_img: np.ndarray([], dtype=int), candidate_img: np.ndarray([], dtype=int),
-                         piece_area: int) -> bool:
-        """
-        Says if the placement of the new piece is rejected considering two criteria:
-        If the new piece is placed over another piece
-        Or if less than 95% of the new piece covers the drawing (black pixels)
-        :param prev_img: image before placing the new piece
-        :param candidate_img: image with the new piece placed
-        :param piece_area: area (number of pixels) of the piece placed
-        :return: True if the piece is accepted, False otherwise
-        """
-        accept_ratio_black_covered = .97  # % of total pixels covered that are black
-        covered_black_pixels = (candidate_img == 255).sum() - (prev_img == 255).sum()
-        black_covered_ratio = covered_black_pixels / piece_area
-
-        return black_covered_ratio > accept_ratio_black_covered
 
 
 if __name__ == "__main__":

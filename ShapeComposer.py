@@ -18,7 +18,7 @@ class ShapeComposer:
         font1:              PyGame font for the title
         font2:              PyGame font for the subtitles
         font3:              PyGame font for the controls
-        output_file_name:   name of the image file which is the valid tangram shape
+        output_file_name:   name of the image_processor file which is the valid tangram shape
         shape_validation:   shape validation object to validate the shape submitted by the user
     """
     def __init__(self) -> None:
@@ -47,7 +47,7 @@ class ShapeComposer:
         """
         for piece in self.pieces:
             piece.position_in_image = self.random_coordinates(piece.side_length)
-            piece.rotate_shape_around_pivot(PIECE_ROTATION * randint(0, 8))
+            piece.rotate_shape_around_its_pivot_point(PIECE_ROTATION * randint(0, 8))
 
     def random_coordinates(self, piece_side_length) -> Point:
         """
@@ -105,7 +105,8 @@ class ShapeComposer:
             points = [(point.x, point.y) for point in piece.get_points_in_image()]
             pg.draw.polygon(self.screen, piece.color, points)
 
-    def get_grid_position(self, x: int, y: int) -> (int, int):
+    @staticmethod
+    def get_grid_position(x: int, y: int) -> (int, int):
         """
         Gives the grid equivalent of a position for a piece, in order to have fixed coordinates for the pieces
         :param x: x position
@@ -118,14 +119,14 @@ class ShapeComposer:
 
     def save_shape(self) -> bool:
         """
-        Saves the image of the shape if it was validated by the program
+        Saves the image_processor of the shape if it was validated by the program
         :return: True if it has been validated, False if it is not valid
         """
         # return True  # for development purpose
         self.screen.fill((255, 255, 255))
         self.draw_pieces()
         pg.display.update()
-        file_name = str(randint(1000000000000000000000, 9999999999999999999999)) + ".png"
+        file_name = str(randint(10 ** 21, 10 ** 22 - 1)) + ".png"
         pg.image.save(self.screen, "user_shapes/" + file_name)
         self.output_file_name = file_name
         if self.shape_validation.validate("user_shapes/" + file_name):
@@ -135,7 +136,7 @@ class ShapeComposer:
     def run(self) -> str:
         """
         Main loop of the user interface. Shows the menu then the composer. Once the shape has been validated, ends the loop.
-        :return the name of the image file with the tangram shape
+        :return the name of the image_processor file with the tangram shape
         """
         pg.init()
         self.font1 = pg.font.SysFont('verdana', 40, True)
@@ -158,9 +159,9 @@ class ShapeComposer:
                     exit()
                 if event.type == pg.KEYDOWN and self.current_piece is not None:
                     if event.key == pg.K_r:
-                        self.current_piece.rotate_shape_around_pivot(PIECE_ROTATION)
+                        self.current_piece.rotate_shape_around_its_pivot_point(PIECE_ROTATION)
                     if event.key == pg.K_n:
-                        self.current_piece.next_corner()
+                        self.current_piece.shift_corners()
                     if event.key == pg.K_f and self.current_piece.name == "Parallelogram":
                         self.current_piece.flip()
                 if event.type == pg.MOUSEBUTTONDOWN:
@@ -170,22 +171,11 @@ class ShapeComposer:
             keys = pg.key.get_pressed()
             if keys[pg.K_0]:
                 self.current_piece = None
-            if keys[pg.K_1]:
-                self.current_piece = self.pieces[0]
-            elif keys[pg.K_2]:
-                self.current_piece = self.pieces[1]
-            elif keys[pg.K_3]:
-                self.current_piece = self.pieces[2]
-            elif keys[pg.K_4]:
-                self.current_piece = self.pieces[3]
-            elif keys[pg.K_5]:
-                self.current_piece = self.pieces[4]
-            elif keys[pg.K_6]:
-                self.current_piece = self.pieces[5]
-            elif keys[pg.K_7]:
-                self.current_piece = self.pieces[6]
+            for i in range(7):
+                if keys[pg.K_1 + i]:
+                    self.current_piece = self.pieces[i]
             # To save the shape
-            elif keys[pg.K_RETURN]:
+            if keys[pg.K_RETURN]:
                 if self.save_shape():
                     messagebox.showinfo("Shape valid", "The shape has been validated, now the program will solve it.")
                     break

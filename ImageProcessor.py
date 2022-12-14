@@ -1,116 +1,44 @@
 from __future__ import annotations
 from math import floor, sqrt, ceil
-
-import utils
-from settings import *
-from elements import *
 from utils import *
 import cv2 as cv
 
+
 class ImageProcessor:
+    """
+    Used to process the input image, turns it black and white and makes it the good size
+
+    Attributes:
+        corners:    corners of the shape on the image
+        image:      image of the puzzle shadow
+    """
     def __init__(self, path_to_image: str = None) -> None:
         self.corners = []
         self.image = None
         if path_to_image is not None:
-            self.image = self.load_image(path_to_image)  # image of the shape we want to reproduce with the tangram pieces
-        #self.show_angle(self.image)
+            self.image = self.load_image(path_to_image)
 
     def load_image(self, path_to_image: str) -> np.ndarray([], dtype=int):
         """
-        loads the image into a 2d np array with 255 as white pixels and 0 as black pixels, resizes it and turns it
+        loads the image_processor into a 2d np array with 255 as white pixels and 0 as black pixels, resizes it and turns it
         into black and white again
-        :param path_to_image: path of the image
-        :return: a 2d numpy array of the resized b&w image
+        :param path_to_image: path of the image_processor
+        :return: a 2d numpy array of the resized b&w image_processor
         """
         image = cv.imread(path_to_image, cv.IMREAD_GRAYSCALE)
 
         black_and_white_image = self.image_to_black_and_white(image)
-        resized_image = self.resize_image(black_and_white_image)  # resizes the image for the tangram pieces to be the good size
+        resized_image = self.resize_image(black_and_white_image)  # resizes the image_processor for the tangram pieces to be the good size
         resized_black_and_white_image = self.image_to_black_and_white(resized_image)  # to b&w to eliminate gray pixels
         filled_image = self.fill_shape(resized_black_and_white_image)  # in case of small holes between very close pieces
-        self.corners = self.get_corners(filled_image)
-        print(self.corners)
+        self.corners = get_corners(filled_image)
         return filled_image
-
-
-    def get_max_area(self, image) :
-        """
-        gets the areas of the contours in the image and the contours themselves
-        :return: a tuple of the areas and the contours
-        """
-        max_area_contours = 0
-        contours = cv.findContours(image, 1, 2)[0]
-        for contour in contours:
-            tmp_area = cv.contourArea(contour)
-            if tmp_area > max_area_contours:
-                max_area_contours = tmp_area
-        return max_area_contours
-
-    def draw_corners(self, image):
-        for corner in self.corners:
-            # cv.circle(image, (corner.x, corner.y),3,128, -1)
-            image = cv.putText(image, str(round(corner.angle_between_edges * 10)) + ","+ str(self.corners.index(corner)), (corner.x, corner.y), cv.FONT_HERSHEY_SIMPLEX,
-                                .5, 128, 2, cv.LINE_AA)
-            image = cv.line(image, (corner.first_edge.start_point.x, corner.first_edge.start_point.y),
-                            (int(corner.first_edge.direction.get_normalized().x * 20 + corner.first_edge.start_point.x) , int(corner.first_edge.direction.get_normalized().y * 20 + corner.first_edge.start_point.y)),
-                            100, 2)
-            image = cv.line(image, (corner.second_edge.start_point.x, corner.second_edge.start_point.y),
-                            (int(corner.second_edge.direction.get_normalized().x * 20 + corner.second_edge.start_point.x) , int(corner.second_edge.direction.get_normalized().y * 20 + corner.second_edge.start_point.y)),
-                            150, 2)
-
-    def show_angle(self, image):
-        final_image = utils.draw_angles_in_image(image, (0,255,0) ,self.corners)
-        cv.imshow("Image", final_image)
-        cv.waitKey(0)
-
-    def get_corners(self, image: np.ndarray) -> list[Corner]:
-        """
-        Gives the coordinates of all the corners of the shape, and all its edges
-        :param image: image from which we want the corners and edges
-        :return: a list of the corners, which also has the edges in it
-        """
-        corners = []
-        contours = cv.findContours(image, 1, 2)[0]
-        for contour in contours[:-1]:  # last contour is the contour of the image
-            if cv.contourArea(contour) < MIN_SUB_PUZZLE_AREA:  # if the sub puzzle is too small, skips it
-                continue
-
-            sub_puzzle_corners = [Corner(contour[0][0][0], contour[0][0][1])]
-            contour_length = len(contour)
-
-            for i in range(1, contour_length):  # gets all the corners
-                corner = Corner(contour[i][0][0], contour[i][0][1])
-                if not corner.close_to(sub_puzzle_corners[-1]):
-                    sub_puzzle_corners.append(corner)
-                else:
-                    # if too close, changes the last corner to the average of the two
-                    sub_puzzle_corners[-1] = Corner(int((sub_puzzle_corners[-1].x + corner.x) / 2),
-                                                    int((sub_puzzle_corners[-1].y + corner.y) / 2))
-
-            if sub_puzzle_corners[0].close_to(sub_puzzle_corners[-1]):
-                sub_puzzle_corners[0] = Corner(int((sub_puzzle_corners[-1].x + sub_puzzle_corners[0].x) / 2),
-                                                int((sub_puzzle_corners[-1].y + sub_puzzle_corners[0].y) / 2))
-                sub_puzzle_corners.pop()
-
-            corners_number = len(sub_puzzle_corners)
-            for i in range(corners_number):  # link them with edges
-                previous_corner = sub_puzzle_corners[i - 1]
-                corner = sub_puzzle_corners[i]
-                next_corner = sub_puzzle_corners[(i + 1) % corners_number]
-
-                corner.first_edge = Edge(corner, previous_corner)
-                corner.second_edge = Edge(corner, next_corner)
-
-                corner.compute_angle_between_edges()
-
-            corners.extend(sub_puzzle_corners)
-        return corners
 
     def resize_image(self, image: np.ndarray([], dtype=int)) -> np.ndarray([], dtype=int):
         """
-        resizes the image for the area of the drawing to match the area of all the tangram pieces, which is 280*280
-        :param image: image we want to resize
-        :return: the np array of the black and white resized image
+        resizes the image_processor for the area of the drawing to match the area of all the tangram pieces, which is 280*280
+        :param image: image_processor we want to resize
+        :return: the np array of the black and white resized image_processor
         """
         resized_image = image.copy()
         (h, w) = image.shape[:2]
@@ -123,7 +51,7 @@ class ImageProcessor:
 
     def resize_corners(self, resize_ratio: float) -> None:
         """
-        Changes the coordinates of the corners for the resized image
+        Changes the coordinates of the corners for the resized image_processor
         :param resize_ratio: ratio of resizing
         """
         resized_corners = []
@@ -131,21 +59,23 @@ class ImageProcessor:
             resized_corners.append(Point(floor(self.corners[i][0] * resize_ratio), floor(self.corners[i][1] * resize_ratio)))
         self.corners = resized_corners
 
-    def image_to_black_and_white(self, image: np.ndarray([], dtype=int)) -> np.ndarray([], dtype=int):
+    @staticmethod
+    def image_to_black_and_white(image: np.ndarray([], dtype=int)) -> np.ndarray([], dtype=int):
         """
         turns a picture to black and white
-        :param image: image we want to convert to b&w
+        :param image: image_processor we want to convert to b&w
         :return: the np array of the black (0) and white (255) pixels
         """
         b_w_image = image.copy()
         b_w_image = cv.threshold(b_w_image, 250, 255, cv.THRESH_BINARY)[1]
         return b_w_image
 
-    def fill_shape(self, image: np.ndarray) -> np.ndarray:
+    @staticmethod
+    def fill_shape(image: np.ndarray) -> np.ndarray:
         """
-        Fills the eventual holes between two pieces. It could've happened during the composing because of the grid
-        :param image: black and white image that we fill
-        :return: the image filled
+        Fills the eventual holes between two pieces. It could've happened during the creation of the shape
+        :param image: black and white image_processor that we fill
+        :return: the image_processor filled
         """
         for i in range(len(image) - 3):
             for j in range(len(image[0]) - 3):

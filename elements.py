@@ -16,52 +16,25 @@ class Point:
         self.x: float = x
         self.y: float = y
 
-    def close_to(self, other: Point, distance=settings.MIN_DIST_BETWEEN_TWO_CORNERS) -> bool:
-        """
-        Checks if the current point is close to another point
-        :param other: the other point
-        :return: True if the current point is close to the other one, False otherwise
-        """
-        return np.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2) < distance
-
     def __eq__(self, other) -> bool:
         return self.x == other.x and self.y == other.y
 
     def __str__(self) -> str:
-        """
-        displays the coordinates in a string
-        :return: the string "x:(x coordinate), y:(y coordinate)"
-        """
         return f"x:{self.x}, y:{self.y}"
 
     def __sub__(self, other):
-        """
-        Subtracts a point to the current one, i.e. subtracts its coordinate to it
-        :param other: other point to subtract
-        :return: the new point with the coordinates subtracted
-        """
         new_pt = Point(0, 0)
         new_pt.x = self.x - other.x
         new_pt.y = self.y - other.y
         return new_pt
 
     def __mul__(self, other):
-        """
-        Multiplies a point to the current one, i.e. multiplies its coordinate to it
-        :param other: other point to multiply
-        :return: the new point with the coordinates multiplied
-        """
         new_pt = Point(0, 0)
         new_pt.x = self.x * other.x
         new_pt.y = self.y * other.y
         return new_pt
 
     def __truediv__(self, other):
-        """
-        Divides a point to the current one, i.e. divides its coordinate to it
-        :param other: other point to divide
-        :return: the new point with the coordinates divided
-        """
         new_pt = Point(0, 0)
         new_pt.x = self.x / other.x
         new_pt.y = self.y / other.y
@@ -71,20 +44,24 @@ class Point:
         return str(self)
 
     def __add__(self, other):
-        """
-        Adds a point to the current one, i.e. adds its coordinate to it
-        :param other: other point to add
-        :return: the new point with the coordinates added
-        """
         new_pt = Point(0, 0)
         new_pt.x = self.x + other.x
         new_pt.y = self.y + other.y
         return new_pt
 
+    def is_close_to(self, other: Point, max_distance=settings.MIN_DIST_BETWEEN_TWO_CORNERS) -> bool:
+        """
+        Checks if the current point is close to another point
+        :param other: the other point
+        :param max_distance: maximum distance at which we consider the two points close to each other
+        :return: True if the current point is close to the other one, False otherwise
+        """
+        return np.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2) < max_distance
+
 
 class Vector(Point):
     """
-    Vector class used for the direction of the edges
+    Vector class used for the directions of the edges
     """
     def __init__(self, x, y):
         super().__init__(x, y)
@@ -98,13 +75,13 @@ class Vector(Point):
 
     def get_normalized(self) -> Vector:
         """
-        Gives the normalized vector
+        Gives the normalized vector, i.e. puts its magnitude to 1
         :return: the normalized vector
         """
         magnitude = self.get_magnitude()
         return Vector(self.x / magnitude, self.y / magnitude)
 
-    def get_angle_with(self, other) -> float:
+    def get_angle_with(self, other: Vector) -> float:
         """
         Gives the angle_between_edges between this vector and another one
         :param other: other vector 
@@ -122,8 +99,15 @@ class Vector(Point):
 
 
 class Edge:
-    def __init__(self, start_point: Point, end_point : Point):
+    """
+    Used to represent the edges of the shape and the tangram pieces
 
+    Attributes:
+        start_point:    Starting point of the edge
+        end_point:      Ending point of the edge
+        direction:      Vector indicating the direction of the edgee
+    """
+    def __init__(self, start_point: Point, end_point : Point):
         self.start_point = start_point
         self.end_point = end_point
         self.direction = Vector(end_point.x - start_point.x, end_point.y - start_point.y)
@@ -133,29 +117,37 @@ class Edge:
 
 
 class Corner(Point):
-    def __init__(self, x, y, edges_from_corner : list = None):
+    """
+    Used to represent the corners of the shape and the tangram pieces
+
+    Attributes:
+        angle_between_edges:    Angle between the two edges
+        first_edge:             First edge starting from this point
+        second_edge:            Second edge starting from this point
+    """
+    def __init__(self, x, y, first_edge = None, second_edge = None):
         super().__init__(x, y)
-        self.edges_from_corner = edges_from_corner
         self.angle_between_edges = 0
-        self.first_edge = None
-        self.second_edge = None
+        self.first_edge = first_edge
+        self.second_edge = second_edge
 
-    def compute_angle_between_edges(self):
-        self.angle_between_edges = self.first_edge.direction.get_angle_with(self.second_edge.direction)
-
-    def __repr__(self):
+    def __str__(self) -> str:
         return "Corner: " + str(self.x) + ", " + str(self.y)
 
-    def __sub__(self, other):
-        """
-        Subtracts a point to the current one, i.e. subtracts its coordinate to it
-        :param other: other point to subtract
-        :return: the new point with the coordinates subtracted
-        """
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __sub__(self, other: Corner) -> Corner:
         new_corner = self
         new_corner.x = self.x - other.x
         new_corner.y = self.y - other.y
         return new_corner
+
+    def compute_angle_between_edges(self) -> None:
+        """
+        Computes the angle between the two edges starting from this point
+        """
+        self.angle_between_edges = self.first_edge.direction.get_angle_with(self.second_edge.direction)
 
 
 class Piece:
@@ -164,10 +156,9 @@ class Piece:
 
     Attributes:
 
-        total_size:         side length of the square containing all the tangram pieces, determines the size of all the pieces
         side_length:        length of a side of the shape
         corners:             coordinates of the vertexes of the shape
-        position_in_image:  coordinates of the shape in the image submitted by the user
+        position_in_image:  coordinates of the shape in the image_processor submitted by the user
         pivot_point:        coordinates of the pivot point the shapes refer to in order to rotate
         area:               area of the piece in pixels
         rotation:           angle_between_edges of rotation of the piece in degrees
@@ -177,7 +168,6 @@ class Piece:
     """
 
     def __init__(self, color: (int, int, int) = (0, 0, 0)) -> None:
-        self.total_size: int = settings.TANGRAM_SIDE_LENGTH  # width of the main square in pixels
         self.side_length: int = settings.TANGRAM_SIDE_LENGTH
         self.corners: list[Corner] = []
         self.position_in_image: Point = Point()
@@ -187,8 +177,8 @@ class Piece:
         self.color: tuple[int] = color
         self.used: bool = False
         self.name: str = ""
-        self.max_corner_swap = 0
-        self.number_of_corner_swap = 0
+        self.max_corners_shifts = 0
+        self.corners_shifts_counter = 0
 
     def __str__(self):
         return self.name
@@ -196,15 +186,18 @@ class Piece:
     def __repr__(self):
         return str(self)
 
-    def next_corner(self) -> None:
+    def shift_corners(self) -> None:
+        """
+        Shifts the corners of the piece by one index, to work with another of its corners
+        """
         self.corners.append(self.corners.pop(0))
         for i in range(len(self.corners) - 1, -1, -1):
             self.corners[i] -= self.corners[0]
         self.pivot_point = self.corners[0]
-        self.number_of_corner_swap += 1
+        self.corners_shifts_counter += 1
         self.compute_edges()
 
-    def rotate_shape_around_pivot(self, angle: float) -> None:
+    def rotate_shape_around_its_pivot_point(self, angle: float) -> None:
         """
         changes the coordinates of the shape to the new coordinates after a rotation of (angle_between_edges)°
         :param angle: angle_between_edges of rotation in degrees (clockwise)
@@ -220,25 +213,31 @@ class Piece:
             self.corners[i] = Corner(qx, qy)
         self.compute_edges()
 
-    def get_points_in_image(self):
+    def get_points_in_image(self) -> list[Point]:
         """
-        gives the coordinates of the shape in the image reference frame
-        :return: the coordinates in a list of corners
+        Gives the coordinates of the shape in the image_processor reference frame
+        :return: the coordinates of the points
         """
         coordinates_points = []
         for point in self.corners:
             coordinates_points.append(point + self.position_in_image)
         return coordinates_points
 
-    def compute_edges(self):
+    def compute_edges(self) -> None:
+        """
+        Computes the edges of all the corners of the piece
+        """
         len_corners = len(self.corners)
         for i in range(0, len_corners):
             self.corners[i].first_edge = Edge(self.corners[i], self.corners[i - 1])
             self.corners[i].second_edge = Edge(self.corners[i], self.corners[(i + 1) % len_corners])
             self.corners[i].compute_angle_between_edges()
 
-    def reset_rotation(self):
-        self.rotate_shape_around_pivot(-self.rotation)
+    def reset_rotation(self) -> None:
+        """
+        Sets back the piece at rotation 0°
+        """
+        self.rotate_shape_around_its_pivot_point(-self.rotation)
 
 
 class Square(Piece):
@@ -248,7 +247,7 @@ class Square(Piece):
 
     def __init__(self, color=(0, 0, 0)):
         super().__init__(color)
-        self.side_length = (np.sqrt(2) * self.total_size) / 4
+        self.side_length = (np.sqrt(2) * settings.TANGRAM_SIDE_LENGTH) / 4
         self.corners = [
             Corner(0, 0),
             Corner(self.side_length, 0),
@@ -293,7 +292,7 @@ class SmallTriangle(Triangle):
 
     def __init__(self, color=(0, 0, 0)):
         super().__init__(color)
-        self.side_length = (self.total_size * np.sqrt(2)) / 4
+        self.side_length = (settings.TANGRAM_SIDE_LENGTH * np.sqrt(2)) / 4
         self.setup_triangle()
         self.name = "Small Triangle"
 
@@ -305,7 +304,7 @@ class MediumTriangle(Triangle):
 
     def __init__(self, color=(0, 0, 0)):
         super().__init__(color)
-        self.side_length = self.total_size / 2
+        self.side_length = settings.TANGRAM_SIDE_LENGTH / 2
         self.setup_triangle()
         self.name = "Medium Triangle"
 
@@ -317,7 +316,7 @@ class LargeTriangle(Triangle):
 
     def __init__(self, color=(0, 0, 0)):
         super().__init__(color)
-        self.side_length = (self.total_size * np.sqrt(2)) / 2
+        self.side_length = (settings.TANGRAM_SIDE_LENGTH * np.sqrt(2)) / 2
         self.setup_triangle()
         self.name = "Large Triangle"
 
@@ -329,8 +328,8 @@ class Parallelogram(Piece):
 
     def __init__(self, color=(0, 0, 0)):
         super().__init__(color)
-        self.long_side_length = self.total_size / 2
-        self.height = self.total_size / 4
+        self.long_side_length = settings.TANGRAM_SIDE_LENGTH / 2
+        self.height = settings.TANGRAM_SIDE_LENGTH / 4
         self.corners = [
             Corner(0, 0),
             Corner(self.long_side_length, 0),

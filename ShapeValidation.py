@@ -6,28 +6,24 @@ class ShapeValidation:
     def __init__(self):
         pass
 
-    def validate(self, path_to_image: str) -> bool:
+    @staticmethod
+    def validate(path_to_image: str) -> bool:
         """
-        Tells if the shape is correct, i.e. that no pieces interlap and all the pieces are inside the image
-        :param path_to_image: path to the image to validate
+        Tells if the shape is correct, i.e. that no pieces interlap and all the pieces are inside the image_processor
+        :param path_to_image: path to the image_processor to validate
         :return: True if it is valid, False otherwise
         """
         image = cv.imread(path_to_image, cv.IMREAD_GRAYSCALE)
-        height, width = image.shape
 
-        cond_border_left = (image[:, 0] < 255).any()
-        cond_border_right = (image[:, -1] < 255).any()
-        cond_border_top = (image[0, :] < 255).any()
-        cond_border_bottom = (image[-1, :] < 255).any()
+        is_left_border_white = (image[:, 0] < 255).any()
+        is_right_border_white = (image[:, -1] < 255).any()
+        is_top_border_white = (image[0, :] < 255).any()
+        is_bottom_border_white = (image[-1, :] < 255).any()
 
-        cond_pieces_in_image = not cond_border_left and not cond_border_right and not cond_border_top and not cond_border_bottom
-        condition_no_pieces_overlaping = (image != 255).sum() >= TANGRAM_AREA * .98
+        are_pieces_overflowing_on_image_side = not is_left_border_white and not is_right_border_white and not is_top_border_white and not is_bottom_border_white
+        are_pieces_overlapping = (image != 255).sum() >= TANGRAM_AREA * .98
 
-
-
-
-        #cond_border_image_white
-        return condition_no_pieces_overlaping and cond_pieces_in_image
+        return are_pieces_overlapping and are_pieces_overflowing_on_image_side
 
 
 if __name__ == "__main__":
