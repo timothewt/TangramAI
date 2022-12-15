@@ -18,7 +18,7 @@ class ImageProcessor:
         if path_to_image is not None:
             self.image = self.load_image(path_to_image)
 
-    def load_image(self, path_to_image: str) -> np.ndarray([], dtype=int):
+    def load_image(self, path_to_image: str) -> np.ndarray:
         """
         loads the image_processor into a 2d np array with 255 as white pixels and 0 as black pixels, resizes it and turns it
         into black and white again
@@ -34,7 +34,7 @@ class ImageProcessor:
         self.corners = get_corners(filled_image)
         return filled_image
 
-    def resize_image(self, image: np.ndarray([], dtype=int)) -> np.ndarray([], dtype=int):
+    def resize_image(self, image: np.ndarray) -> np.ndarray:
         """
         resizes the image_processor for the area of the drawing to match the area of all the tangram pieces, which is 280*280
         :param image: image_processor we want to resize
@@ -60,7 +60,7 @@ class ImageProcessor:
         self.corners = resized_corners
 
     @staticmethod
-    def image_to_black_and_white(image: np.ndarray([], dtype=int)) -> np.ndarray([], dtype=int):
+    def image_to_black_and_white(image: np.ndarray) -> np.ndarray:
         """
         turns a picture to black and white
         :param image: image_processor we want to convert to b&w

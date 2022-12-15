@@ -29,7 +29,7 @@ def get_duplicate(values: list[float]) -> float:
                 result = values[i]
     return result
 
-def accept_new_piece(prev_img: np.ndarray([], dtype=int), candidate_img: np.ndarray([], dtype=int),
+def accept_new_piece(prev_img: np.ndarray, candidate_img: np.ndarray,
                      piece_area: int) -> bool:
     """
     Says if the placement of the new piece is rejected considering two criteria:
@@ -107,7 +107,7 @@ def draw_corners_edges_and_angles(image):
                         (0,0,255), 2)
     return result_image
 
-def draw_piece_in_image(image: np.ndarray([], dtype=int), piece, color: int | tuple[int, int, int] = 255):
+def draw_piece_in_image(image: np.ndarray, piece, color: int | tuple[int, int, int] = 255):
     """
     Draws a shape on the image from its vertexes coordinates, used to place a piece on the tangram puzzle
     :param image: image_processor we want to draw in
