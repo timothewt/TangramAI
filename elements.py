@@ -254,7 +254,7 @@ class Square(Piece):
             Corner(self.side_length, self.side_length),
             Corner(0, self.side_length)
         ]
-        self.max_corner_swap = 4
+        self.max_corners_shifts = 4
         self.pivot_point = self.corners[0]
         self.compute_edges()
         self.area = self.side_length ** 2
@@ -269,7 +269,7 @@ class Triangle(Piece):
     def __init__(self, color=(0, 0, 0)):
         super().__init__(color)
         self.side_length = 0
-        self.max_corner_swap = 3
+        self.max_corners_shifts = 3
 
     def setup_triangle(self) -> None:
         """
@@ -336,7 +336,7 @@ class Parallelogram(Piece):
             Corner(3 * self.long_side_length / 2, self.height),
             Corner(self.long_side_length / 2, self.height)
         ]
-        self.max_corner_swap = 4
+        self.max_corners_shifts = 4
         self.pivot_point = self.corners[0]
         self.compute_edges()
         self.area = self.long_side_length * self.height

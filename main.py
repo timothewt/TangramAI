@@ -33,5 +33,6 @@ if __name__ == "__main__":
         if args.saveData:
             stats_handler.save_data(solve_duration, len(image_processor.corners), solver.solution_node.current_state.used_pieces)
 
+        print(solver.solution_node.current_state.used_pieces)
         result_image = place_all_pieces_on_image(image_processor.image, solver.solution_node.current_state.used_pieces)
         show_image(result_image)

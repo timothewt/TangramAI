@@ -29,21 +29,19 @@ def get_duplicate(values: list[float]) -> float:
                 result = values[i]
     return result
 
-def accept_new_piece(prev_img: np.ndarray, candidate_img: np.ndarray,
-                     piece_area: int) -> bool:
+def accept_new_piece(prev_img: np.ndarray, candidate_img: np.ndarray, piece_area: int) -> bool:
     """
     Says if the placement of the new piece is rejected considering two criteria:
     If the new piece is placed over another piece
-    Or if less than 95% of the new piece covers the drawing (black pixels)
+    Or if less than 97% of the new piece covers the drawing (black pixels)
     :param prev_img: image_processor before placing the new piece
     :param candidate_img: image_processor with the new piece placed
     :param piece_area: area (number of pixels) of the piece placed
     :return: True if the piece is accepted, False otherwise
     """
-    accept_ratio_black_covered = .97  # % of total pixels covered that are black
+    accept_ratio_black_covered = .95  # % of total pixels covered that are black
     covered_black_pixels = (candidate_img == 255).sum() - (prev_img == 255).sum()
     black_covered_ratio = covered_black_pixels / piece_area
-
     return black_covered_ratio > accept_ratio_black_covered
 
 def get_rotation_angle_between_piece_and_figure(piece_corner: Corner, shape_corner: Corner):
@@ -73,7 +71,6 @@ def are_two_triangle_corners_on_two_shape_corners(triangle_corners: list[Corner]
         while shape_corners_index < len(shape_corners):
             if triangle_corners[triangle_corners_index].is_close_to(shape_corners[shape_corners_index], 10):
                 close_triangle_corners_from_shape_corners += 1
-                triangle_corners_index += 1
                 break
             shape_corners_index += 1
         triangle_corners_index += 1
@@ -132,27 +129,15 @@ def is_piece_accepted_at_shape_corner(image: np.ndarray, piece: Piece, shape_cor
     :param shape_corner: corner of the shape where we want to place the piece
     :return: True if the placement is correct, False otherwise
     """
+    rotation = get_rotation_angle_between_piece_and_figure(piece.corners[0], shape_corner)
+    piece.rotate_shape_around_its_pivot_point(rotation)
+    piece.position_in_image = shape_corner
     if piece.name == "Large Triangle":  # if the large triangle doesn't touch two corners it can't be correct
         if not are_two_triangle_corners_on_two_shape_corners(piece.get_points_in_image(), get_corners(image)):
             return False, image
-    rotation = get_rotation_angle_between_piece_and_figure(piece.corners[0], shape_corner)
-    candidate_image = place_piece_in_image_at_point(image, rotation, shape_corner, piece)
+    candidate_image = draw_piece_in_image(image.copy(), piece)
     piece_accepted = accept_new_piece(image, candidate_image, piece.area)
     return piece_accepted, candidate_image
-
-def place_piece_in_image_at_point(image: np.ndarray, angle_to_rotate: float, piece: Piece, goal: Point) -> np.ndarray:
-    """
-    Places the piece on a point on the image, used to place a piece on a corner of the shape and align it with its edges
-    :param image: image_processor on which we want to place the piece
-    :param angle_to_rotate: necessary rotation of the piece
-    :param piece: piece that we want to place on the image_processor
-    :param goal: point on which we want to place the current piece corner
-    :return: the image_processor with the piece added on it
-    """
-    piece.position_in_image = goal
-    piece.rotate_shape_around_its_pivot_point(angle_to_rotate)
-    candidate_image = draw_piece_in_image(image, piece)
-    return candidate_image
 
 def place_all_pieces_on_image(image: np.ndarray, pieces: list[Piece]) -> np.ndarray:
     """

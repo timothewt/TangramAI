@@ -25,13 +25,13 @@ class TangramSolver:
         available_pieces = [
             LargeTriangle((8, 189, 100)),
             LargeTriangle((255, 200, 3)),
+            MediumTriangle((142, 207, 33)),
             Parallelogram((96, 107, 217)),
             Square((255, 74, 74)),
-            MediumTriangle((142, 207, 33)),
             SmallTriangle((44, 174, 242)),
             SmallTriangle((251, 140, 50)),
         ]
-        root_state = State(available_pieces, self.puzzle_shadow, get_corners(self.puzzle_shadow))
+        root_state = State(available_pieces, self.puzzle_shadow)
         node = Node(root_state)
         while node.current_state is not None:
             next_state = node.current_state.get_next_state()
