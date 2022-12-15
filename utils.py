@@ -91,7 +91,7 @@ def show_image(image: np.ndarray) -> None:
 
 def draw_corners_edges_and_angles(image):
     """
-    Draws the corners of the shape on the image_processor
+    Draws the corners of the shape on the image_processor for debugging
     :param image: the image_processor on which we draw the edges
     :return: the image_processor with edges and angles drawn
     """
@@ -109,7 +109,7 @@ def draw_corners_edges_and_angles(image):
 
 def draw_piece_in_image(image: np.ndarray([], dtype=int), piece, color: int | tuple[int, int, int] = 255):
     """
-    draws a shape on the image_processor from its vertexes coordinates
+    Draws a shape on the image from its vertexes coordinates, used to place a piece on the tangram puzzle
     :param image: image_processor we want to draw in
     :param piece: piece to draw
     :param color: color of the piece to draw, white by default
@@ -125,7 +125,8 @@ def draw_piece_in_image(image: np.ndarray([], dtype=int), piece, color: int | tu
 
 def is_piece_accepted_at_shape_corner(image: np.ndarray, piece: Piece, shape_corner: Corner) -> (bool, np.ndarray):
     """
-    Tells if the piece placement at this corner of the shape is accepted or not
+    Tells if the piece placement at this corner of the shape is accepted or not, to know if trying to place it at this
+    corner is worth it
     :param image: image_processor of which we place the piece
     :param piece: piece to place on the image_processor
     :param shape_corner: corner of the shape where we want to place the piece
@@ -141,7 +142,7 @@ def is_piece_accepted_at_shape_corner(image: np.ndarray, piece: Piece, shape_cor
 
 def place_piece_in_image_at_point(image: np.ndarray, angle_to_rotate: float, piece: Piece, goal: Point) -> np.ndarray:
     """
-    Places the piece on a
+    Places the piece on a point on the image, used to place a piece on a corner of the shape and align it with its edges
     :param image: image_processor on which we want to place the piece
     :param angle_to_rotate: necessary rotation of the piece
     :param piece: piece that we want to place on the image_processor
@@ -155,7 +156,7 @@ def place_piece_in_image_at_point(image: np.ndarray, angle_to_rotate: float, pie
 
 def place_all_pieces_on_image(image: np.ndarray, pieces: list[Piece]) -> np.ndarray:
     """
-    Places all pieces of a list on an image
+    Places all pieces of a list on an image, in color, used to display the solution
     :param image: image on which we want to place the pieces
     :param pieces: list of pieces to place
     :return: the resulting image
