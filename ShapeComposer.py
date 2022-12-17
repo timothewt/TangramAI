@@ -2,9 +2,7 @@ from random import randint
 import pygame as pg
 import os
 from tkinter import messagebox
-from ShapeValidation import ShapeValidation
-from elements import *
-from settings import *
+from utils import *
 
 
 class ShapeComposer:
@@ -19,7 +17,6 @@ class ShapeComposer:
         font2:              PyGame font for the subtitles
         font3:              PyGame font for the controls
         output_file_name:   name of the image_processor file which is the valid tangram shape
-        shape_validation:   shape validation object to validate the shape submitted by the user
     """
     def __init__(self) -> None:
         self.screen = pg.display.set_mode(MENU_RES)
@@ -39,7 +36,6 @@ class ShapeComposer:
         self.font2 = None
         self.font3 = None
         self.output_file_name = ""
-        self.shape_validation = ShapeValidation()
 
     def randomize_pieces_positions(self) -> None:
         """
@@ -129,7 +125,7 @@ class ShapeComposer:
         file_name = str(randint(10 ** 21, 10 ** 22 - 1)) + ".png"
         pg.image.save(self.screen, "user_shapes/" + file_name)
         self.output_file_name = file_name
-        if self.shape_validation.validate("user_shapes/" + file_name):
+        if validate_puzzle("user_shapes/" + file_name):
             return True
         return False
 

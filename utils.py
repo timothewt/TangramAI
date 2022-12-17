@@ -1,7 +1,7 @@
 from __future__ import annotations
 import cv2 as cv
 from elements import *
-from settings import MIN_SUB_PUZZLE_AREA
+from settings import *
 
 ### CALCULATIONS UTILS ###
 
@@ -39,7 +39,7 @@ def accept_new_piece(prev_img: np.ndarray, candidate_img: np.ndarray, piece_area
     :param piece_area: area (number of pixels) of the piece placed
     :return: True if the piece is accepted, False otherwise
     """
-    accept_ratio_black_covered = .95  # % of total pixels covered that are black
+    accept_ratio_black_covered = .96  # % of total pixels covered that are black
     covered_black_pixels = (candidate_img == 255).sum() - (prev_img == 255).sum()
     black_covered_ratio = covered_black_pixels / piece_area
     return black_covered_ratio > accept_ratio_black_covered
@@ -160,7 +160,7 @@ def get_corners(image: np.ndarray) -> list[Corner]:
     """
     corners = []
     contours = cv.findContours(image, 1, 2)[0]
-    for contour in contours[:-1]:  # last contour is the contour of the image_processor
+    for contour in contours[:-1]:  # last contour is the contour of the image
         if cv.contourArea(contour) < MIN_SUB_PUZZLE_AREA:  # if the sub puzzle is too small, skips it
             continue
 
@@ -194,3 +194,21 @@ def get_corners(image: np.ndarray) -> list[Corner]:
 
         corners.extend(sub_puzzle_corners)
     return corners
+
+def validate_puzzle(path_to_image: str) -> bool:
+    """
+    Tells if the shape is correct, i.e. that no pieces interlap and all the pieces are inside the image_processor
+    :param path_to_image: path to the image_processor to validate
+    :return: True if it is valid, False otherwise
+    """
+    image = cv.imread(path_to_image, cv.IMREAD_GRAYSCALE)
+
+    is_left_border_white = (image[:, 0] < 255).any()
+    is_right_border_white = (image[:, -1] < 255).any()
+    is_top_border_white = (image[0, :] < 255).any()
+    is_bottom_border_white = (image[-1, :] < 255).any()
+
+    are_pieces_overflowing_on_image_side = not is_left_border_white and not is_right_border_white and not is_top_border_white and not is_bottom_border_white
+    are_pieces_overlapping = (image != 255).sum() >= TANGRAM_AREA * .98
+
+    return are_pieces_overlapping and are_pieces_overflowing_on_image_side

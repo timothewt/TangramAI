@@ -2,7 +2,7 @@ import numpy as np
 from State import State
 from Node import Node
 from elements import *
-from utils import get_corners
+from utils import place_all_pieces_on_image, show_image
 
 
 class TangramSolver:
@@ -25,9 +25,9 @@ class TangramSolver:
         available_pieces = [
             LargeTriangle((8, 189, 100)),
             LargeTriangle((255, 200, 3)),
+            Square((255, 74, 74)),
             MediumTriangle((142, 207, 33)),
             Parallelogram((96, 107, 217)),
-            Square((255, 74, 74)),
             SmallTriangle((44, 174, 242)),
             SmallTriangle((251, 140, 50)),
         ]

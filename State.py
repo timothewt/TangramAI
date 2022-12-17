@@ -32,6 +32,9 @@ class State:
         """
         next_state = None
 
+        if len(self.corners) == 0:
+            return None
+
         while next_state is None and self.current_working_piece_index < len(self.working_pieces):
             working_piece = self.working_pieces[self.current_working_piece_index]
             shape_corner = self.corners[self.current_corner_index]
