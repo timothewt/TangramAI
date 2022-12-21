@@ -123,6 +123,8 @@ class ShapeComposer:
         self.draw_pieces()
         pg.display.update()
         file_name = str(randint(10 ** 21, 10 ** 22 - 1)) + ".png"
+        if not os.path.exists("user_shapes"):
+            os.makedirs("user_shapes")
         pg.image.save(self.screen, "user_shapes/" + file_name)
         self.output_file_name = file_name
         if validate_puzzle("user_shapes/" + file_name):
