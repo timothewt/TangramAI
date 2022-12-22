@@ -120,7 +120,10 @@ def draw_piece_in_image(image: np.ndarray, piece, color: int | tuple[int, int, i
     result_image = cv.fillPoly(image, [points], color)
     return result_image
 
-def is_piece_accepted_at_shape_corner(image: np.ndarray, piece: Piece, shape_corner: Corner) -> (bool, np.ndarray):
+global z
+z = 0
+
+def is_piece_accepted_at_shape_corner(image: np.ndarray, piece: Piece, shape_corner: Corner, used_pieces = None) -> (bool, np.ndarray):
     """
     Tells if the piece placement at this corner of the shape is accepted or not, to know if trying to place it at this
     corner is worth it
@@ -129,9 +132,18 @@ def is_piece_accepted_at_shape_corner(image: np.ndarray, piece: Piece, shape_cor
     :param shape_corner: corner of the shape where we want to place the piece
     :return: True if the placement is correct, False otherwise
     """
+    global z
     rotation = get_rotation_angle_between_piece_and_figure(piece.corners[0], shape_corner)
     piece.rotate_shape_around_its_pivot_point(rotation)
     piece.position_in_image = shape_corner
+    img_save = image.copy()
+    image_rgb = cv.cvtColor(img_save, cv.COLOR_GRAY2BGR)
+    for piece1 in used_pieces:
+        image_rgb = draw_piece_in_image(image_rgb, piece1, piece1.color)
+    image_rgb = draw_piece_in_image(image_rgb, piece, piece.color)
+    image_rgb = cv.cvtColor(image_rgb, cv.COLOR_BGR2RGB)
+    z += 1
+    cv.imwrite("gif_resolution/" + str(z) + ".png", image_rgb)
     if piece.name == "Large Triangle":  # if the large triangle doesn't touch two corners it can't be correct
         if not are_two_triangle_corners_on_two_shape_corners(piece.get_points_in_image(), get_corners(image)):
             return False, image

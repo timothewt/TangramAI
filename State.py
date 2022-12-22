@@ -40,7 +40,7 @@ class State:
             shape_corner = self.corners[self.current_corner_index]
 
             if approx_eq(abs(shape_corner.angle_between_edges), abs(working_piece.corners[0].angle_between_edges)):
-                is_piece_accepted, candidate_image = is_piece_accepted_at_shape_corner(self.image.copy(), working_piece, shape_corner)
+                is_piece_accepted, candidate_image = is_piece_accepted_at_shape_corner(self.image.copy(), working_piece, shape_corner, self.used_pieces)
 
                 if is_piece_accepted:
                     next_state = self.generate_next_state(candidate_image, working_piece)
