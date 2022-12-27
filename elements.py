@@ -5,7 +5,7 @@ import math
 
 class Point:
     """
-    Used to represent a Point of a tangram piece, note that the (0, 0) is at the top left and x goes positive downwards
+    Used to represent a Point of a tangram piece, note that the (0, 0) is at the top left and y goes positive downwards
 
     Attributes:
         x:  coordinate in the horizontal axis
@@ -83,9 +83,9 @@ class Vector(Point):
 
     def get_angle_with(self, other: Vector) -> float:
         """
-        Gives the angle_between_edges between this vector and another one
+        Gives the angle between this vector and another one
         :param other: other vector 
-        :return: the angle_between_edges between the two vectors in degrees
+        :return: the angle between the two vectors in degrees
         """
         dot_product = self.x * other.x + self.y * other.y
         magnitude = self.get_magnitude() * other.get_magnitude()
@@ -105,7 +105,7 @@ class Edge:
     Attributes:
         start_point:    Starting point of the edge
         end_point:      Ending point of the edge
-        direction:      Vector indicating the direction of the edgee
+        direction:      Vector indicating the direction of the edge
     """
     def __init__(self, start_point: Point, end_point : Point):
         self.start_point = start_point
@@ -161,9 +161,8 @@ class Piece:
         position_in_image:  coordinates of the shape in the image_processor submitted by the user
         pivot_point:        coordinates of the pivot point the shapes refer to in order to rotate
         area:               area of the piece in pixels
-        rotation:           angle_between_edges of rotation of the piece in degrees
+        rotation:           angle of rotation of the piece in degrees
         color:              color of the piece, RGB
-        used:               True if the piece has been used on the shape
         name:               name of the piece
     """
 
@@ -175,7 +174,6 @@ class Piece:
         self.area: int = 0
         self.rotation: int = 0
         self.color: tuple[int] = color
-        self.used: bool = False
         self.name: str = ""
         self.max_corners_shifts = 0
         self.corners_shifts_counter = 0
@@ -199,8 +197,8 @@ class Piece:
 
     def rotate_shape_around_its_pivot_point(self, angle: float) -> None:
         """
-        changes the coordinates of the shape to the new coordinates after a rotation of (angle_between_edges)°
-        :param angle: angle_between_edges of rotation in degrees (clockwise)
+        changes the coordinates of the shape to the new coordinates after a rotation of (angle)°
+        :param angle: angle of rotation in degrees (clockwise)
         """
         angle = - angle  # to rotate counterclockwise
         self.rotation += angle

@@ -83,7 +83,7 @@ def show_image(image: np.ndarray) -> None:
     Opens a window to display an image
     :param image: image to display
     """
-    cv.imshow("Tangram", image)
+    cv.imshow("Tangram Solver", image)
     cv.waitKey(0)
 
 def draw_corners_edges_and_angles(image):

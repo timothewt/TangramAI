@@ -21,6 +21,9 @@ if __name__ == "__main__":
     elif args.createFig:
         editor = ShapeComposer()
         image_path = editor.run()
+    else:
+        print("No puzzle given.")
+        exit(0)
 
     image_processor = ImageProcessor(image_path)
     stats_handler = StatsHandler(image_path)

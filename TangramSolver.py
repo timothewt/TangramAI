@@ -2,7 +2,6 @@ import numpy as np
 from State import State
 from Node import Node
 from elements import *
-from utils import place_all_pieces_on_image, show_image
 
 
 class TangramSolver:
