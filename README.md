@@ -15,6 +15,8 @@
   * [Prerequisites](#prerequisites)
   * [Installation](#installation)
 - [Usage](#usage)
+  * [Commands](#commands)
+  * [Use the editor](#use-the-editor)
 - [License](#license)
 - [Contact](#contact)
 - [Acknowledgements](#acknowledgments)
@@ -47,6 +49,19 @@
  ## Installation 
  
 # Usage 
+
+ ## Commands
+ 
+  A simple use of the program to save the results of the solver is to execute this line in the terminal :
+  
+  ```console 
+  py main.py --saveData True
+  ```
+  
+  The arguments available to use the program are : 
+   - ```imagePath``` : Allow the user to use the solver on an prebuilt image (if no path is provided the program will use the built-in editor) 
+   - ```saveData ```  : Allow the user to save the data of the execution in a .json file and the steps as .png files. (By default False) 
+ ## Use the editor
 
 # License 
 
