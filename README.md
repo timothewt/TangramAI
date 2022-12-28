@@ -19,12 +19,14 @@
   * [Use the editor](#use-the-editor)
 - [Examples](#examples)
 - [License](#license)
-- [Contact](#contact)
-- [Acknowledgements](#acknowledgments)
-  
+- [Authors](#authors)
+
 # About the project
  
  ## Context
+ This program is our final project for the IA41 class. We had as specifications to realize a tangram solver and to let the user realize his own puzzles.
+ 
+ A tangram is a set of 7 geometric pieces (2 large triangles, 1 middle triangle, 1 parallelogram, 1 square and 2 small triangles). The goal is to complete an image where only the shadow of the pieces appears.
  
  ## Made with 
 
@@ -51,9 +53,7 @@
  ## Installation 
  
  1. Clone the project and unzip it.
- 2. Launch a terminal using a python environment matching the requirements listed in the section above.
- 3. ???
- 4. Profit.
+ 2. Install the librairies listed in [requirements.txt](https://github.com/timothewt/TangramAI/blob/master/requirements.txt)
  
 # Usage 
 
@@ -87,16 +87,19 @@
  
 # Examples
 
-Time (in seconds)  | JSP |  44.9 | 0.2 | 2586.5 |
+Time (in seconds)  | 0.7 |  44.9 | 0.2 | 2586.5 |
 | :-: | ----------|----  | --- | --- |
 | **Solution steps** | <img src="https://github.com/timothewt/TangramAI/blob/master/assets/resolution_lapin.png" alt="drawing" width="200px"/> | <img src="https://github.com/timothewt/TangramAI/blob/master/assets/resolution_personne.png" alt="drawing" width="200px"/> | <img src="https://github.com/timothewt/TangramAI/blob/master/assets/resolution_chameau.png" alt="drawing" width="200px"/> |<img src="https://github.com/timothewt/TangramAI/blob/master/assets/resolution_maison.png" alt="drawing" width="200px"/> |
+
+With our algorithm, most tangrams are solvable in only a few seconds. However, as shown here, some tangrams (usually those with few corners) are very difficult and the algorithm can spend a few tens of minutes.
 
 # License 
 
 Distributed under the MIT License. 
 
-# Contact 
+# Authors
 
-# Acknowledgments 
+- [@timothewt](https://github.com/timothewt)
+- [@HugoM25](https://github.com/HugoM25)
 
  
