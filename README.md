@@ -47,7 +47,13 @@
  
  In order to use the program you will need to have a python 3.X interpretor installed. 
  The required libraries are listed in the [requirements.txt](https://github.com/timothewt/TangramAI/blob/master/requirements.txt) file. 
+ 
  ## Installation 
+ 
+ 1. Clone the project and unzip it.
+ 2. Launch a terminal using a python environment matching the requirements listed in the section above.
+ 3. ???
+ 4. Profit.
  
 # Usage 
 
@@ -81,7 +87,13 @@
  
 # Examples
 
+Time (in seconds)  | JSP |  44.9 | 0.2 | 2586.5 |
+| :-: | ----------|----  | --- | --- |
+| **Solution steps** | <img src="https://github.com/timothewt/TangramAI/blob/master/assets/resolution_lapin.png" alt="drawing" width="200px"/> | <img src="https://github.com/timothewt/TangramAI/blob/master/assets/resolution_personne.png" alt="drawing" width="200px"/> | <img src="https://github.com/timothewt/TangramAI/blob/master/assets/resolution_chameau.png" alt="drawing" width="200px"/> |<img src="https://github.com/timothewt/TangramAI/blob/master/assets/resolution_maison.png" alt="drawing" width="200px"/> |
+
 # License 
+
+Distributed under the MIT License. 
 
 # Contact 
 
